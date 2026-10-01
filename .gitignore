@@ -1,3 +1,6 @@
 logs/*.csv
+captures/raw/*.pcapng
+captures/extracted/*.csv
+captures/reports/*.json
 __pycache__/
 *.pyc
