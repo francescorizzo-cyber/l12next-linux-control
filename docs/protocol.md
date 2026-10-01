@@ -42,6 +42,16 @@ STOP  BB 57 03
 
 Sending these from Linux over the established BLE-MIDI ALSA connection successfully started and stopped recording.
 
+## Transport targets still to reverse-engineer
+
+The following transport controls are explicitly included in the reverse-engineering plan because they did not work through the previous USB control path:
+
+- PLAY
+- FF (fast forward)
+- REW (rewind)
+
+Their BLE-MIDI bytes are not yet known, so they are recorded in `tools/commands.json` with status `to_discover`. The interactive tester will not transmit them until capture analysis gives us candidate bytes and we deliberately mark those candidates as `experimental`.
+
 ## Linux verification
 
 Find the current ALSA sequencer client:
@@ -88,6 +98,7 @@ The ALSA card number is system-dependent and should eventually be discovered dyn
 
 ## Next investigations
 
+- reverse-engineer PLAY, FF and REW over BLE-MIDI;
 - map all 14 USB capture channels;
 - build real-time RMS/peak meters;
 - determine robust performance/silence thresholds;
