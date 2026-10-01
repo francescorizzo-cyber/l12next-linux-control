@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "device": "ZOOM LiveTrak L12next",
+    "transport": "BLE-MIDI via ALSA sequencer",
+    "notes": "Only commands explicitly verified on hardware are marked confirmed."
+  },
+  "commands": [
+    {
+      "name": "REC",
+      "category": "transport",
+      "bytes": "B9 57 03",
+      "status": "confirmed",
+      "description": "Start recording"
+    },
+    {
+      "name": "STOP",
+      "category": "transport",
+      "bytes": "BB 57 03",
+      "status": "confirmed",
+      "description": "Stop recording"
+    }
+  ]
+}
