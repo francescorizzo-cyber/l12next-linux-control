@@ -17,7 +17,37 @@ The commands were obtained by comparing BLE traffic from the official control ap
 
 The L12next USB Audio capture interface was also observed with 14 channels at 48 kHz, 32-bit, supporting `S32_LE` and `FLOAT_LE`.
 
-## Quick test
+## Interactive protocol tester
+
+The repository now includes a guided tester that sends one command at a time, asks for confirmation before transmission, auto-detects the L12next ALSA MIDI port, and writes a CSV test log.
+
+List confirmed commands:
+
+```bash
+python3 tools/protocol_tester.py --list
+```
+
+Test all confirmed commands interactively:
+
+```bash
+python3 tools/protocol_tester.py
+```
+
+Test only one command:
+
+```bash
+python3 tools/protocol_tester.py --command REC
+```
+
+When new candidate commands are added to `tools/commands.json` with status `experimental`, include them explicitly with:
+
+```bash
+python3 tools/protocol_tester.py --experimental
+```
+
+The tester intentionally does not brute-force unknown MIDI values. Experimental commands should come from captures or controlled hypotheses and be added to `tools/commands.json` first.
+
+## Quick manual test
 
 Find the current ALSA MIDI destination:
 
