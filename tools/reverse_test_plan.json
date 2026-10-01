@@ -1,0 +1,81 @@
+{
+  "tests": [
+    {
+      "id": "transport_play",
+      "label": "PLAY",
+      "instruction": "On the ZOOM app, press PLAY once when the script says NOW.",
+      "category": "transport",
+      "destructive": false
+    },
+    {
+      "id": "transport_stop_after_play",
+      "label": "STOP",
+      "instruction": "On the ZOOM app, press STOP once when the script says NOW.",
+      "category": "transport",
+      "destructive": false
+    },
+    {
+      "id": "transport_ff",
+      "label": "FF",
+      "instruction": "On the ZOOM app, press Fast Forward once when the script says NOW.",
+      "category": "transport",
+      "destructive": false
+    },
+    {
+      "id": "transport_stop_after_ff",
+      "label": "STOP",
+      "instruction": "On the ZOOM app, press STOP once when the script says NOW.",
+      "category": "transport",
+      "destructive": false
+    },
+    {
+      "id": "transport_rew",
+      "label": "REW",
+      "instruction": "On the ZOOM app, press Rewind once when the script says NOW.",
+      "category": "transport",
+      "destructive": false
+    },
+    {
+      "id": "transport_stop_after_rew",
+      "label": "STOP",
+      "instruction": "On the ZOOM app, press STOP once when the script says NOW.",
+      "category": "transport",
+      "destructive": false
+    },
+    {
+      "id": "scene_select_3",
+      "label": "SCENE_SELECT_3",
+      "instruction": "Select scene 3 in the app without recalling it, if the app supports separate selection.",
+      "category": "scene",
+      "destructive": false
+    },
+    {
+      "id": "scene_call_3",
+      "label": "SCENE_CALL_3",
+      "instruction": "Recall/CALL scene 3 in the app.",
+      "category": "scene",
+      "destructive": false
+    },
+    {
+      "id": "scene_call_7",
+      "label": "SCENE_CALL_7",
+      "instruction": "Recall/CALL scene 7 in the app.",
+      "category": "scene",
+      "destructive": false
+    },
+    {
+      "id": "scene_save_3",
+      "label": "SCENE_SAVE_3",
+      "instruction": "SAVE/STORE the current mixer state into scene 3 ONLY if you are willing to overwrite that slot.",
+      "category": "scene",
+      "destructive": true
+    },
+    {
+      "id": "scene_delete_3",
+      "label": "SCENE_DELETE_3",
+      "instruction": "DELETE/CLEAR scene 3 ONLY if you are willing to remove that slot.",
+      "category": "scene",
+      "destructive": true
+    }
+  ]
+}
