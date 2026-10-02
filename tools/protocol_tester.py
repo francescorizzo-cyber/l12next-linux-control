@@ -51,7 +51,8 @@ def run_text(args: list[str]) -> str:
 def discover_l12next_port() -> str:
     """
     Locate the ALSA sequencer port whose client/port name contains L12next.
-    Returns e.g. '128:0'.
+    Supports localized aconnect output such as Italian 'cliente'.
+    Returns e.g. '24:0'.
     """
     output = run_text(["aconnect", "-l"])
 
@@ -61,7 +62,7 @@ def discover_l12next_port() -> str:
     for raw_line in output.splitlines():
         line = raw_line.rstrip()
 
-        match_client = re.match(r"^client\s+(\d+):\s+'([^']*)'", line)
+        match_client = re.match(r"^(?:client|cliente)\s+(\d+):\s+'([^']*)'", line, re.IGNORECASE)
         if match_client:
             current_client = match_client.group(1)
             current_name = match_client.group(2)
