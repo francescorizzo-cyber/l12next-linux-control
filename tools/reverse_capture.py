@@ -2,22 +2,19 @@
 """
 Guided BLE reverse-engineering session for ZOOM LiveTrak L12next.
 
-What it does:
-1. finds the nRF Sniffer interface exposed by tshark;
-2. starts a full .pcapng capture;
-3. guides the user through one ZOOM-app action at a time;
-4. records a timestamp marker for each requested action;
-5. stops capture cleanly;
-6. runs tshark over the capture and extracts ATT Write Request / Write Command packets;
-7. correlates writes with each action window;
-8. generates CSV + JSON reports and highlights candidate payloads.
+Capture is performed directly through Nordic nrfutil:
+    nrfutil ble-sniffer sniff --port ... --follow ... --output-pcap-file ...
 
-This tool does NOT brute-force unknown mixer commands and does NOT send
-experimental commands to the mixer. It observes the official app only.
+The script then:
+1. guides the user through one ZOOM-app action at a time;
+2. records precise timestamp markers for every requested action;
+3. stops the Nordic capture cleanly;
+4. uses tshark to extract ATT Write Request / Write Command packets;
+5. correlates packets with each action window;
+6. generates CSV + JSON reports and ranks candidate payloads.
 
-Requirements:
-    tshark
-    nRF Sniffer for Bluetooth LE extcap visible in: tshark -D
+This tool observes the official app. It does not brute-force or transmit
+unknown commands to the mixer.
 """
 
 from __future__ import annotations
@@ -25,15 +22,13 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
-import re
 import shutil
 import signal
 import subprocess
 import sys
 import time
-from collections import Counter, defaultdict
-from dataclasses import dataclass, asdict
+from collections import Counter
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
@@ -44,6 +39,9 @@ CAPTURE_ROOT = ROOT / "captures"
 RAW_DIR = CAPTURE_ROOT / "raw"
 EXTRACTED_DIR = CAPTURE_ROOT / "extracted"
 REPORT_DIR = CAPTURE_ROOT / "reports"
+
+DEFAULT_PORT = "/dev/ttyACM0"
+DEFAULT_FOLLOW = "10:32:2C:BB:81:12"
 
 
 @dataclass
@@ -65,6 +63,11 @@ class Packet:
     value: str
 
 
+def require_program(name: str) -> None:
+    if shutil.which(name) is None:
+        raise RuntimeError(f"Required program not found: {name}")
+
+
 def run(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(
         args,
@@ -73,51 +76,6 @@ def run(args: list[str], *, check: bool = True) -> subprocess.CompletedProcess:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-
-
-def require_program(name: str) -> None:
-    if shutil.which(name) is None:
-        raise RuntimeError(
-            f"Required program '{name}' not found. "
-            f"Install Wireshark/tshark first."
-        )
-
-
-def list_interfaces() -> str:
-    result = run(["tshark", "-D"])
-    return result.stdout
-
-
-def detect_nrf_interface(explicit: str | None) -> str:
-    if explicit:
-        return explicit
-
-    output = list_interfaces()
-    candidates: list[tuple[str, str]] = []
-
-    for line in output.splitlines():
-        # Typical examples:
-        # 7. /dev/ttyACM0 (nRF Sniffer for Bluetooth LE)
-        # 7. nrf_sniffer_ble (nRF Sniffer for Bluetooth LE)
-        m = re.match(r"^\s*(\d+)\.\s+(.+?)(?:\s+\((.*)\))?\s*$", line)
-        if not m:
-            continue
-        idx, iface, desc = m.group(1), m.group(2).strip(), (m.group(3) or "")
-        hay = f"{iface} {desc}".lower()
-        if "nrf" in hay and "sniffer" in hay:
-            candidates.append((idx, iface))
-
-    if not candidates:
-        raise RuntimeError(
-            "nRF Sniffer interface not found in 'tshark -D'.\n"
-            "Run 'tshark -D' manually and verify that the Nordic sniffer appears."
-        )
-
-    # Prefer a device path if present, otherwise first matching extcap entry.
-    for idx, iface in candidates:
-        if "/dev/tty" in iface:
-            return iface
-    return candidates[0][1]
 
 
 def load_plan(path: Path) -> list[dict]:
@@ -133,20 +91,36 @@ def ensure_dirs() -> None:
         path.mkdir(parents=True, exist_ok=True)
 
 
-def start_capture(interface: str, capture_path: Path) -> subprocess.Popen:
-    # -q keeps terminal output quiet. Capture remains unfiltered so that we
-    # preserve evidence for later re-analysis.
-    cmd = ["tshark", "-q", "-i", interface, "-w", str(capture_path)]
+def start_capture(port: str, follow: str, capture_path: Path) -> subprocess.Popen:
+    cmd = [
+        "nrfutil",
+        "ble-sniffer",
+        "sniff",
+        "--port",
+        port,
+        "--follow",
+        follow,
+        "--output-pcap-file",
+        str(capture_path),
+    ]
+
+    print("Starting Nordic capture:")
+    print("  " + " ".join(cmd))
+
     proc = subprocess.Popen(
         cmd,
-        stdout=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
     )
+
     time.sleep(2.0)
+
     if proc.poll() is not None:
-        stderr = proc.stderr.read() if proc.stderr else ""
-        raise RuntimeError(f"tshark capture failed to start: {stderr.strip()}")
+        stdout, stderr = proc.communicate()
+        detail = (stderr or stdout or "").strip()
+        raise RuntimeError(f"Nordic capture failed to start: {detail}")
+
     return proc
 
 
@@ -163,6 +137,7 @@ def stop_capture(proc: subprocess.Popen) -> None:
             proc.wait(timeout=3)
         except subprocess.TimeoutExpired:
             proc.kill()
+            proc.wait(timeout=3)
 
 
 def countdown(seconds: int) -> None:
@@ -186,7 +161,7 @@ def run_guided_tests(
     print("=" * 72)
     print("Keep the ZOOM app connected to the mixer.")
     print("Perform ONLY the requested action after NOW.")
-    print("Do not touch other mixer/app controls until the next prompt.")
+    print("Do not touch other app/mixer controls until the next prompt.")
     print()
 
     for index, test in enumerate(tests, start=1):
@@ -204,18 +179,19 @@ def run_guided_tests(
         print(test.get("instruction", ""))
 
         if destructive:
-            print("WARNING: this action may overwrite or delete mixer data.")
+            print("WARNING: this action may overwrite or delete scene data.")
             answer = input("Type YES to include this destructive test: ").strip()
             if answer != "YES":
                 print("Skipped.")
                 continue
 
-        input("Press ENTER when you are ready for the countdown...")
+        input("Press ENTER when ready for the countdown...")
         countdown(countdown_seconds)
+
         marker_time = time.time()
         print(">>> NOW <<<")
         print("Perform the requested action ONCE.")
-        print(f"Waiting {after:.1f} seconds for BLE traffic...")
+
         markers.append(
             Marker(
                 test_id=str(test.get("id", "")),
@@ -226,6 +202,8 @@ def run_guided_tests(
                 window_after=after,
             )
         )
+
+        print(f"Waiting {after:.1f} seconds for BLE traffic...")
         time.sleep(after)
         print()
 
@@ -234,31 +212,42 @@ def run_guided_tests(
 
 def extract_att_writes(capture_path: Path) -> list[Packet]:
     display_filter = "btatt.opcode == 0x12 || btatt.opcode == 0x52"
-    fields = [
-        "-e", "frame.number",
-        "-e", "frame.time_epoch",
-        "-e", "btatt.handle",
-        "-e", "btatt.opcode",
-        "-e", "btatt.value",
-    ]
+
     cmd = [
         "tshark",
-        "-r", str(capture_path),
-        "-Y", display_filter,
-        "-T", "fields",
-        "-E", "separator=\t",
-        "-E", "occurrence=f",
-        *fields,
+        "-r",
+        str(capture_path),
+        "-Y",
+        display_filter,
+        "-T",
+        "fields",
+        "-E",
+        "separator=\t",
+        "-E",
+        "occurrence=f",
+        "-e",
+        "frame.number",
+        "-e",
+        "frame.time_epoch",
+        "-e",
+        "btatt.handle",
+        "-e",
+        "btatt.opcode",
+        "-e",
+        "btatt.value",
     ]
+
     result = run(cmd)
 
     packets: list[Packet] = []
+
     for line in result.stdout.splitlines():
         parts = line.split("\t")
         if len(parts) < 5:
             continue
 
         frame, epoch, handle, opcode, value = parts[:5]
+
         if not epoch or not value:
             continue
 
@@ -286,19 +275,24 @@ def correlate(markers: list[Marker], packets: list[Packet]) -> dict:
     for marker in markers:
         lo = marker.timestamp_epoch - marker.window_before
         hi = marker.timestamp_epoch + marker.window_after
-        hits = [p for p in packets if lo <= p.timestamp_epoch <= hi]
 
-        payload_counts = Counter(p.value for p in hits)
+        hits = [
+            packet
+            for packet in packets
+            if lo <= packet.timestamp_epoch <= hi
+        ]
+
+        payload_counts = Counter(packet.value for packet in hits)
+
         report[marker.test_id] = {
             "marker": asdict(marker),
             "packet_count": len(hits),
-            "writes": [asdict(p) for p in hits],
+            "writes": [asdict(packet) for packet in hits],
             "payload_counts": dict(payload_counts),
         }
 
-    # Compare payloads across tests. Payloads appearing in many unrelated
-    # windows are likely background/synchronization traffic.
     prevalence: Counter[str] = Counter()
+
     for entry in report.values():
         for payload in set(entry["payload_counts"].keys()):
             prevalence[payload] += 1
@@ -307,24 +301,30 @@ def correlate(markers: list[Marker], packets: list[Packet]) -> dict:
 
     for entry in report.values():
         candidates = []
+
         for payload, count in entry["payload_counts"].items():
             seen_in_tests = prevalence[payload]
+
             candidates.append(
                 {
                     "value": payload,
                     "count_in_window": count,
                     "seen_in_test_windows": seen_in_tests,
-                    "specificity": round(1.0 - ((seen_in_tests - 1) / total_tests), 3),
+                    "specificity": round(
+                        1.0 - ((seen_in_tests - 1) / total_tests),
+                        3,
+                    ),
                 }
             )
 
         candidates.sort(
-            key=lambda x: (
-                x["seen_in_test_windows"],
-                -x["count_in_window"],
-                x["value"],
+            key=lambda item: (
+                item["seen_in_test_windows"],
+                -item["count_in_window"],
+                item["value"],
             )
         )
+
         entry["candidates"] = candidates
 
     return report
@@ -334,9 +334,16 @@ def write_packets_csv(path: Path, packets: list[Packet]) -> None:
     with path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(
             fh,
-            fieldnames=["frame", "timestamp_epoch", "handle", "opcode", "value"],
+            fieldnames=[
+                "frame",
+                "timestamp_epoch",
+                "handle",
+                "opcode",
+                "value",
+            ],
         )
         writer.writeheader()
+
         for packet in packets:
             writer.writerow(asdict(packet))
 
@@ -348,10 +355,12 @@ def print_summary(report: dict) -> None:
 
     for test_id, entry in report.items():
         marker = entry["marker"]
+
         print(f"{marker['label']} ({test_id})")
         print(f"  ATT writes in window: {entry['packet_count']}")
 
         candidates = entry.get("candidates", [])
+
         if not candidates:
             print("  No ATT write candidate found.")
             continue
@@ -368,55 +377,75 @@ def print_summary(report: dict) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Guided nRF/Wireshark capture and automatic L12next BLE analysis"
+        description="Guided Nordic BLE capture and automatic L12next analysis"
     )
+
     parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN)
+
     parser.add_argument(
-        "--interface",
-        help="tshark capture interface. Auto-detected from 'tshark -D' if omitted.",
+        "--port",
+        default=DEFAULT_PORT,
+        help=f"Nordic serial port (default: {DEFAULT_PORT})",
     )
+
+    parser.add_argument(
+        "--follow",
+        default=DEFAULT_FOLLOW,
+        help=f"BLE address to follow (default: {DEFAULT_FOLLOW})",
+    )
+
     parser.add_argument("--countdown", type=int, default=3)
     parser.add_argument("--window-before", type=float, default=0.75)
     parser.add_argument("--window-after", type=float, default=4.0)
+
     parser.add_argument(
         "--include-destructive",
         action="store_true",
-        help="Allow SAVE/DELETE tests. Each still requires typing YES.",
+        help="Allow SAVE/DELETE tests; each still requires typing YES.",
     )
-    parser.add_argument(
-        "--list-interfaces",
-        action="store_true",
-        help="Print tshark interfaces and exit.",
-    )
+
     args = parser.parse_args()
 
     try:
+        require_program("nrfutil")
         require_program("tshark")
-
-        if args.list_interfaces:
-            print(list_interfaces())
-            return 0
 
         ensure_dirs()
         tests = load_plan(args.plan)
-        interface = detect_nrf_interface(args.interface)
 
         stamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        capture_path = RAW_DIR / f"session_{stamp}.pcapng"
+
+        capture_path = RAW_DIR / f"session_{stamp}.pcap"
         packet_csv_path = EXTRACTED_DIR / f"session_{stamp}_att_writes.csv"
         report_path = REPORT_DIR / f"session_{stamp}.json"
         marker_path = REPORT_DIR / f"session_{stamp}_markers.json"
 
-        print(f"nRF capture interface: {interface}")
+        print(f"Nordic port : {args.port}")
+        print(f"Follow BLE  : {args.follow}")
         print(f"Capture file: {capture_path}")
         print()
-        input(
-            "Make sure the sniffer is following the L12next connection, "
-            "then press ENTER to start..."
+
+        print("IMPORTANT:")
+        print("  1. Disconnect the ZOOM app from the mixer first if needed.")
+        print("  2. Start this program.")
+        print("  3. When Nordic capture is running, connect the ZOOM app.")
+        print("  4. Then execute ONLY the requested action for each test.")
+        print()
+
+        input("Press ENTER to start Nordic capture...")
+
+        capture_proc = start_capture(
+            args.port,
+            args.follow,
+            capture_path,
         )
 
-        capture_proc = start_capture(interface, capture_path)
         try:
+            print()
+            print("Nordic capture is running.")
+            print("Connect/verify the ZOOM app now.")
+            input("When the app is connected and stable, press ENTER to begin tests...")
+
             markers = run_guided_tests(
                 tests,
                 countdown_seconds=args.countdown,
@@ -425,32 +454,40 @@ def main() -> int:
                 include_destructive=args.include_destructive,
             )
         finally:
-            print("Stopping capture...")
+            print("Stopping Nordic capture...")
             stop_capture(capture_proc)
 
         marker_path.write_text(
-            json.dumps([asdict(m) for m in markers], indent=2) + "\n",
+            json.dumps(
+                [asdict(marker) for marker in markers],
+                indent=2,
+            )
+            + "\n",
             encoding="utf-8",
         )
 
-        print("Extracting ATT writes...")
+        print("Extracting ATT writes with tshark...")
         packets = extract_att_writes(capture_path)
+
         write_packets_csv(packet_csv_path, packets)
 
         report = correlate(markers, packets)
+
         report_path.write_text(
             json.dumps(
                 {
                     "session": {
                         "created": datetime.now().isoformat(timespec="seconds"),
                         "capture": str(capture_path),
-                        "interface": interface,
+                        "nrf_port": args.port,
+                        "follow": args.follow,
                         "packet_count_att_writes": len(packets),
                     },
                     "tests": report,
                 },
                 indent=2,
-            ) + "\n",
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -458,19 +495,25 @@ def main() -> int:
 
         print()
         print("Saved:")
-        print(f"  PCAPNG : {capture_path}")
+        print(f"  PCAP   : {capture_path}")
         print(f"  CSV    : {packet_csv_path}")
         print(f"  MARKERS: {marker_path}")
         print(f"  REPORT : {report_path}")
         print()
         print(
-            "Next step: inspect the most test-specific candidate payloads, "
-            "then add only plausible candidates to tools/commands.json "
-            "as status=experimental before transmission tests."
+            "Candidate payloads are observations only. "
+            "Validate plausible commands with protocol_tester.py "
+            "before marking them confirmed."
         )
+
         return 0
 
-    except (RuntimeError, OSError, json.JSONDecodeError) as exc:
+    except (
+        RuntimeError,
+        OSError,
+        json.JSONDecodeError,
+        subprocess.CalledProcessError,
+    ) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
