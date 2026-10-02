@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET. Official L12next MIDI table resolves the remaining scene controls: BC 59 03 = Scene 10, BD 59 03 = Scene Delete (value 03 follows verified button press convention). It also identifies B9 57 as RECORD BUTTON and BE 57 as OVERDUB MODE. CH1 fader confirmed from capture: B0 3C vv. Observed settled values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57. Fader control confirmed over USB ALSA: CH1=B0 3C vv, CH2=B1 3C vv. General pattern is Bn 3C vv for CH1..CH16 with absolute 7-bit values."
+    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET. Official L12next MIDI table resolves the remaining scene controls: BC 59 03 = Scene 10, BD 59 03 = Scene Delete (value 03 follows verified button press convention). It also identifies B9 57 as RECORD BUTTON and BE 57 as OVERDUB MODE. CH1 fader confirmed from capture: B0 3C vv. Observed settled values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57. Fader control confirmed over USB ALSA: CH1=B0 3C vv, CH2=B1 3C vv. General pattern is Bn 3C vv for CH1..CH16 with absolute 7-bit values. Dedicated BLE REC/STOP capture reconfirmed state feedback: B8 57 05 = REC active, B8 57 00 = stopped. These are feedback/state messages, distinct from the control command B9 57 03."
   },
   "commands": [
     {
@@ -172,6 +172,20 @@
       "bytes": "Bn 3C vv",
       "status": "confirmed",
       "description": "General fader pattern: MIDI status Bn selects mixer channel (n=0..15 => CH1..CH16), CC 0x3C, vv is absolute 7-bit fader position. Verified on CH1 and CH2 and generalized from MIDI channel mapping."
+    },
+    {
+      "name": "REC_STATE_ACTIVE",
+      "category": "feedback",
+      "bytes": "B8 57 05",
+      "status": "confirmed",
+      "description": "Mixer/app feedback observed during REC state. In the dedicated REC/STOP BLE capture, B8 57 05 appears immediately after the REC operation and is treated as recording-active feedback."
+    },
+    {
+      "name": "REC_STATE_STOPPED",
+      "category": "feedback",
+      "bytes": "B8 57 00",
+      "status": "confirmed",
+      "description": "Mixer/app feedback observed for stopped recording/transport state. In the dedicated REC/STOP BLE capture, B8 57 00 appears after STOP and is treated as recording-stopped feedback."
     }
   ]
 }
