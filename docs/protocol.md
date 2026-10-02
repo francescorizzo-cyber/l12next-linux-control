@@ -194,3 +194,14 @@ B9 56 03
 ```
 
 Behavior: saves the currently selected scene. Verified by direct USB ALSA replay on hardware.
+
+
+## Correction: BB 56 03
+
+```
+BB 56 03
+```
+
+Behavior: selects scene 1. It does **not** perform DELETE.
+
+Scene DELETE remains unidentified.
