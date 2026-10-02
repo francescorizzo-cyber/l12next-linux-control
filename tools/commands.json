@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET. Official L12next MIDI table resolves the remaining scene controls: BC 59 03 = Scene 10, BD 59 03 = Scene Delete (value 03 follows verified button press convention). It also identifies B9 57 as RECORD BUTTON and BE 57 as OVERDUB MODE."
+    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET. Official L12next MIDI table resolves the remaining scene controls: BC 59 03 = Scene 10, BD 59 03 = Scene Delete (value 03 follows verified button press convention). It also identifies B9 57 as RECORD BUTTON and BE 57 as OVERDUB MODE. CH1 fader confirmed from capture: B0 3C vv. Observed settled values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57."
   },
   "commands": [
     {
@@ -151,6 +151,13 @@
       "bytes": "BD 59 03",
       "status": "manual_confirmed",
       "description": "Scene DELETE. Official L12next MIDI implementation lists CC 0x59 on MIDI channel 14 for Scene Delete. Value 03 matches the verified button-press convention; destructive hardware replay not yet performed."
+    },
+    {
+      "name": "CH1_FADER",
+      "category": "channel",
+      "bytes": "B0 3C vv",
+      "status": "confirmed",
+      "description": "Channel 1 fader. Official MIDI map: CC 0x3C (60), MIDI channel selects mixer channel. Capture verified B0 3C vv for CH1. In the test capture: -inf -> 00, about -20 dB -> 1D, about -10 dB -> 35, 0 dB -> 57."
     }
   ]
 }
