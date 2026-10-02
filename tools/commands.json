@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown."
+    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect."
   },
   "commands": [
     {
@@ -41,11 +41,11 @@
       "description": "Rewind command verified on hardware over USB ALSA."
     },
     {
-      "name": "SCENE_MODE",
+      "name": "SCENE_SELECT_3",
       "category": "scene",
       "bytes": "BD 56 03",
       "status": "confirmed",
-      "description": "Enters/activates scene operation mode: SAVE / RECALL / DELETE indicators blink. Verified on hardware over USB ALSA."
+      "description": "Selects scene 3. Verified by direct USB ALSA hardware test."
     },
     {
       "name": "SCENE_RECALL",
