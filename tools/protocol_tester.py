@@ -50,35 +50,70 @@ def run_text(args: list[str]) -> str:
 
 def discover_l12next_port() -> str:
     """
-    Locate the ALSA sequencer port whose client/port name contains L12next.
+    Locate the L12next BLE-MIDI ALSA sequencer port.
+
+    IMPORTANT:
+    The mixer may also expose a USB kernel port named
+    'L12next Mixer Control Port'. That is NOT the BLE-MIDI destination
+    used for the reverse-engineered app commands, so it is intentionally
+    excluded.
+
     Supports localized aconnect output such as Italian 'cliente'.
-    Returns e.g. '24:0'.
     """
     output = run_text(["aconnect", "-l"])
 
     current_client: str | None = None
     current_name = ""
+    current_meta = ""
+    candidates: list[tuple[int, str, str]] = []
 
     for raw_line in output.splitlines():
         line = raw_line.rstrip()
 
-        match_client = re.match(r"^(?:client|cliente)\s+(\d+):\s+'([^']*)'", line, re.IGNORECASE)
+        match_client = re.match(
+            r"^(?:client|cliente)\s+(\d+):\s+'([^']*)'\s*(.*)$",
+            line,
+            re.IGNORECASE,
+        )
         if match_client:
             current_client = match_client.group(1)
             current_name = match_client.group(2)
+            current_meta = match_client.group(3)
             continue
 
         match_port = re.match(r"^\s+(\d+)\s+'([^']*)'", line)
         if match_port and current_client is not None:
             port_num = match_port.group(1)
             port_name = match_port.group(2)
-            combined = f"{current_name} {port_name}".lower()
-            if "l12next" in combined:
-                return f"{current_client}:{port_num}"
+            combined = f"{current_name} {port_name} {current_meta}".lower()
+
+            if "l12next" not in combined:
+                continue
+
+            # Explicitly reject the USB control endpoint.
+            if "mixer control port" in combined or "tipo=kernel" in combined or "type=kernel" in combined:
+                continue
+
+            score = 0
+            if "bluetooth" in combined:
+                score += 100
+            if "type=user" in combined or "tipo=utente" in combined:
+                score += 20
+            if "l12next_" in combined:
+                score += 10
+
+            candidates.append(
+                (score, f"{current_client}:{port_num}", combined)
+            )
+
+    if candidates:
+        candidates.sort(reverse=True)
+        return candidates[0][1]
 
     raise RuntimeError(
-        "L12next ALSA MIDI port not found. "
-        "Connect the mixer via BLE-MIDI and check 'aconnect -l'."
+        "L12next BLE-MIDI ALSA port not found. The USB 'L12next Mixer Control Port' "
+        "does not count. Connect the mixer through Bluetooth BLE-MIDI, then check "
+        "'aconnect -l' for a user client/port containing L12next and Bluetooth."
     )
 
 
