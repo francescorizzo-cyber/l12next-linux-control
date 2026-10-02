@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Only commands explicitly verified by replay on hardware are marked confirmed. PLAY BA 57 03 is experimental because the previous failed replay was sent to the USB Mixer Control Port rather than the BLE-MIDI port."
+    "notes": "Confirmed transport commands have been verified by replay on hardware. REC and STOP were verified previously; PLAY BA 57 03 is now also verified over the USB ALSA Mixer Control Port."
   },
   "commands": [
     {
@@ -23,8 +23,8 @@
       "name": "PLAY",
       "category": "transport",
       "bytes": "BA 57 03",
-      "status": "experimental",
-      "description": "Candidate isolated from official-app BLE capture. Previous failed replay used the USB Mixer Control Port, so that result was invalid; retest on the BLE-MIDI ALSA port."
+      "status": "confirmed",
+      "description": "Playback command. Verified on hardware over the USB ALSA Mixer Control Port with MIDI bytes BA 57 03."
     },
     {
       "name": "FF",
