@@ -155,3 +155,20 @@ Behavior: triggers RECALL for the currently selected scene.
 
 The MIDI command that changes/selects the scene number itself is still to be identified.
 
+
+
+## Scene 7 selection verified
+
+```
+B1 57 03
+```
+
+Behavior: selects scene 7. SAVE / RECALL / DELETE blink, indicating the selection is pending.
+
+The selected scene is not activated until RECALL is sent separately:
+
+```
+BA 56 03
+```
+
+Therefore scene selection and scene recall are two distinct operations.
