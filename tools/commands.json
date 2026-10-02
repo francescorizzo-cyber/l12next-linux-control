@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Confirmed transport commands have been verified by replay on hardware. REC and STOP were verified previously; PLAY BA 57 03 is now also verified over the USB ALSA Mixer Control Port."
+    "notes": "Scene semantics corrected from direct hardware testing: BD 56 03 enters scene operation mode (SAVE/RECALL/DELETE blink); BA 56 03 triggers RECALL of the currently selected scene. The command that selects the scene number itself is still to be identified."
   },
   "commands": [
     {
@@ -41,18 +41,18 @@
       "description": "Not exposed by the official app; investigate separately from physical mixer controls/protocol patterns."
     },
     {
-      "name": "SCENE_SELECT_3",
+      "name": "SCENE_MODE",
       "category": "scene",
       "bytes": "BD 56 03",
       "status": "confirmed",
-      "description": "Select scene 3. Verified on hardware over the USB ALSA Mixer Control Port; selects scene 3 without necessarily recalling it."
+      "description": "Enters/activates scene operation mode: SAVE / RECALL / DELETE indicators blink. Verified on hardware over USB ALSA."
     },
     {
-      "name": "SCENE_ACTION_BA5603",
+      "name": "SCENE_RECALL",
       "category": "scene",
       "bytes": "BA 56 03",
-      "status": "observed",
-      "description": "USB replay makes the scene indication blink. Exact semantics not yet confirmed; do not treat as a scene-number command."
+      "status": "confirmed",
+      "description": "Triggers RECALL for the currently selected scene. Verified on hardware over USB ALSA."
     }
   ]
 }
