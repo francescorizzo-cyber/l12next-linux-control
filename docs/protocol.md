@@ -335,3 +335,29 @@ AutoFonic already has gain/trim control logic. The newly confirmed fader mapping
 | RECORD | transport | `B9 57 03` | confirmed | RECORD BUTTON according to the official L12next MIDI implementation (CC 0x57, MIDI channel 10). On the tested mixer this was observed to arm channels while Overdub mode was active. |
 | REW | transport | `BC 57 03` | confirmed | Rewind command verified on hardware over USB ALSA. |
 | STOP | transport | `BB 57 03` | confirmed | Stops playback/transport. Verified by direct USB ALSA hardware test. |
+
+
+## REC/STOP feedback
+
+A dedicated BLE capture while operating REC/STOP confirmed the recording-state feedback messages:
+
+```
+B8 57 05 -> REC active
+B8 57 00 -> STOP / recording inactive
+```
+
+These are state/feedback messages and should be kept separate from control commands such as:
+
+```
+B9 57 03 -> RECORD button command
+BB 57 03 -> STOP button command
+```
+
+For AutoFonic, the intended state synchronization is:
+
+```
+B8 57 05 -> physical/external REC state observed -> AUTOREC ON
+B8 57 00 -> physical/external STOP state observed -> AUTOREC OFF
+```
+
+The dedicated capture also contained `B9 57 03` shortly before `B8 57 05`, consistent with command followed by state feedback.
