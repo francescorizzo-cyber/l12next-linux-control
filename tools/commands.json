@@ -2,29 +2,29 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "USB ALSA scan of B0..BF with CC 0x57 value 0x03 mapped several commands. Confirmed by direct hardware observation: B0/B1/B2/B3 select scenes 6/7/8/9, B7 selects scene 1, B9 PLAY, BC REW, BD FF. B4 causes RESET. BE causes a transport mode the user described as OVERBURN; exact official label still needs verification. BA/BB/B5/B6/B8/BF not yet mapped by this scan."
+    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded."
   },
   "commands": [
     {
-      "name": "PLAY",
-      "category": "transport",
+      "name": "OVERDUB_ALL_ARM",
+      "category": "recording",
       "bytes": "B9 57 03",
       "status": "confirmed",
-      "description": "Playback command verified on hardware over USB ALSA."
+      "description": "Arms all channels in the mixer overdub/overburn mode, per direct hardware test. User described this as 'OVERBURN ALL CANAL'."
     },
     {
       "name": "STOP",
       "category": "transport",
       "bytes": "BB 57 03",
       "status": "confirmed",
-      "description": "Stop recording"
+      "description": "Stops playback/transport. Verified by direct USB ALSA hardware test."
     },
     {
       "name": "PLAY",
       "category": "transport",
       "bytes": "BA 57 03",
       "status": "confirmed",
-      "description": "Playback command. Verified on hardware over the USB ALSA Mixer Control Port with MIDI bytes BA 57 03."
+      "description": "Starts playback ('PLAY SOUND'). Verified by direct USB ALSA hardware test."
     },
     {
       "name": "FF",
