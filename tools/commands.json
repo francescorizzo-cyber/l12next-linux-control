@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded."
+    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA."
   },
   "commands": [
     {
@@ -102,6 +102,13 @@
       "bytes": "BE 57 03",
       "status": "observed",
       "description": "Observed hardware action labeled by user as OVERBURN/overdub-like mode; exact semantics/name still to verify."
+    },
+    {
+      "name": "SCENE_SAVE",
+      "category": "scene",
+      "bytes": "B9 56 03",
+      "status": "confirmed",
+      "description": "Saves the currently selected scene. Verified by direct USB ALSA hardware test."
     }
   ]
 }
