@@ -275,3 +275,33 @@ Observed settled values in the capture:
 ```
 
 Intermediate values were transmitted continuously while dragging the fader, indicating absolute 7-bit MIDI values rather than relative increments.
+
+
+## General channel fader pattern
+
+Direct USB ALSA tests confirmed the per-channel fader pattern:
+
+```
+CH1  -> B0 3C vv
+CH2  -> B1 3C vv
+CH3  -> B2 3C vv
+...
+CH16 -> BF 3C vv
+```
+
+`0x3C` is the fader controller and `vv` is an absolute 7-bit position.
+
+Verified reference points captured on CH1:
+
+```
+-inf dB   -> 00
+~ -20 dB  -> 1D
+~ -10 dB  -> 35
+0 dB      -> 57
+```
+
+CH2 was also replay-tested successfully over the USB ALSA mixer control port, confirming that the MIDI status nibble selects the mixer channel.
+
+### AutoFonic impact
+
+AutoFonic already has gain/trim control logic. The newly confirmed fader mapping means the software can now control both gain/trim and per-channel fader levels. The next reverse-engineering priorities are mixer feedback/state synchronization, per-channel mute, monitor sends, and reliable physical REC/STOP state handling.
