@@ -31,7 +31,7 @@
     {
       "id": "scene_select_3",
       "label": "SCENE_SELECT_3",
-      "instruction": "Select scene 3 in the app without recalling it, if the app supports separate selection.",
+      "instruction": "Select scene 3 in the app without recalling it.",
       "category": "scene",
       "destructive": false
     },
@@ -39,6 +39,13 @@
       "id": "scene_call_3",
       "label": "SCENE_CALL_3",
       "instruction": "Recall/CALL scene 3 in the app.",
+      "category": "scene",
+      "destructive": false
+    },
+    {
+      "id": "scene_select_7",
+      "label": "SCENE_SELECT_7",
+      "instruction": "Select scene 7 in the app without recalling it.",
       "category": "scene",
       "destructive": false
     },
