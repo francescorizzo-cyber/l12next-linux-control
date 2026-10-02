@@ -104,3 +104,8 @@ The main protocol work still worth doing is:
 - Monitor 1 / Monitor 2 sends
 - physical REC/STOP event synchronization
 - safer, slower gain correction using mixer state feedback
+
+
+## Command reference
+
+A complete, status-tagged table of all discovered and tested L12next commands is maintained in `docs/protocol.md` under **Complete command table**.
