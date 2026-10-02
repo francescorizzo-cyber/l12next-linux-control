@@ -15,28 +15,14 @@
       "destructive": false
     },
     {
-      "id": "transport_ff",
-      "label": "FF",
-      "instruction": "On the ZOOM app, press Fast Forward once when the script says NOW.",
+      "id": "transport_rec",
+      "label": "REC",
+      "instruction": "On the ZOOM app, press REC once when the script says NOW.",
       "category": "transport",
       "destructive": false
     },
     {
-      "id": "transport_stop_after_ff",
-      "label": "STOP",
-      "instruction": "On the ZOOM app, press STOP once when the script says NOW.",
-      "category": "transport",
-      "destructive": false
-    },
-    {
-      "id": "transport_rew",
-      "label": "REW",
-      "instruction": "On the ZOOM app, press Rewind once when the script says NOW.",
-      "category": "transport",
-      "destructive": false
-    },
-    {
-      "id": "transport_stop_after_rew",
+      "id": "transport_stop_after_rec",
       "label": "STOP",
       "instruction": "On the ZOOM app, press STOP once when the script says NOW.",
       "category": "transport",
