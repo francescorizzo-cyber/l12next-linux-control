@@ -361,3 +361,21 @@ B8 57 00 -> physical/external STOP state observed -> AUTOREC OFF
 ```
 
 The dedicated capture also contained `B9 57 03` shortly before `B8 57 05`, consistent with command followed by state feedback.
+
+
+## Scene 1 CALL sequence
+
+Scene 1 selection is:
+
+```
+BB 56 03
+```
+
+To actually CALL/activate scene 1, send:
+
+```
+BB 56 03  -> select scene 1
+BA 56 03  -> RECALL selected scene
+```
+
+The older `B7 57 03` scene-1 mapping is obsolete and should not be used.
