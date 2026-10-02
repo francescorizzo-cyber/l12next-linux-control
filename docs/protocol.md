@@ -185,3 +185,12 @@ BB 57 03  -> STOP
 ```
 
 The earlier interpretation of `B9 57 03` as REC was incorrect and is superseded by this hardware test.
+
+
+## Scene SAVE verified
+
+```
+B9 56 03
+```
+
+Behavior: saves the currently selected scene. Verified by direct USB ALSA replay on hardware.
