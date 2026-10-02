@@ -39,6 +39,13 @@
       "bytes": "",
       "status": "to_discover",
       "description": "Not exposed by the official app; investigate separately from physical mixer controls/protocol patterns."
+    },
+    {
+      "name": "SCENE_SELECT_3",
+      "category": "scene",
+      "bytes": "BD 56 03",
+      "status": "confirmed",
+      "description": "Select scene 3. Verified on hardware over the USB ALSA Mixer Control Port; selects scene 3 without necessarily recalling it."
     }
   ]
 }
