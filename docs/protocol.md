@@ -36,9 +36,9 @@ Sending those values back did not reproduce remote transport operation.
 A clean capture of official-app traffic revealed different commands. After separating the BLE-MIDI timestamp bytes, the experimentally verified commands are:
 
 ```
-REC   B9 57 03
-PLAY  BA 57 03
-STOP  BB 57 03
+OVERDUB_ALL_ARM  B9 57 03
+PLAY              BA 57 03
+STOP              BB 57 03
 ```
 
 Sending these from Linux over the established BLE-MIDI ALSA connection successfully started and stopped recording.
@@ -172,3 +172,16 @@ BA 56 03
 ```
 
 Therefore scene selection and scene recall are two distinct operations.
+
+
+## Corrected transport / recording mapping
+
+A direct USB ALSA hardware retest established:
+
+```
+B9 57 03  -> arms all channels in overdub/overburn mode
+BA 57 03  -> PLAY SOUND
+BB 57 03  -> STOP
+```
+
+The earlier interpretation of `B9 57 03` as REC was incorrect and is superseded by this hardware test.
