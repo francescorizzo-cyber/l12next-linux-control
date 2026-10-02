@@ -216,3 +216,15 @@ BD 56 03 -> selects scene 3
 ```
 
 The previous interpretation of this message as entering scene-operation mode was incorrect.
+
+
+## Additional scene mapping confirmed
+
+Direct USB ALSA tests confirmed:
+
+```
+BC 56 03 -> scene 2
+BE 56 03 -> scene 4
+BF 56 03 -> scene 5
+B4 57 03 -> RESET
+```
