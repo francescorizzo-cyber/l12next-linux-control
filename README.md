@@ -117,8 +117,7 @@ The main protocol work still worth doing is:
 | SCENE_DELETE | scene | `BD 59 03` | manual_confirmed | Scene DELETE. Official L12next MIDI implementation lists CC 0x59 on MIDI channel 14 for Scene Delete. Value 03 matches the verified button-press convention; destructive hardware replay not yet performed. |
 | SCENE_RECALL | scene | `BA 56 03` | confirmed | Triggers RECALL for the currently selected scene. Verified on hardware over USB ALSA. |
 | SCENE_SAVE | scene | `B9 56 03` | confirmed | Saves the currently selected scene. Verified by direct USB ALSA hardware test. |
-| SCENE_SELECT_1 | scene | `B7 57 03` | confirmed | Selects scene 1; leaves scene operation pending until RECALL. |
-| SCENE_SELECT_1_ALT | scene | `BB 56 03` | confirmed | Selects scene 1. Verified by direct USB ALSA hardware test. This byte sequence is NOT DELETE. |
+| SCENE_SELECT_1 | scene | `BB 56 03` | confirmed | Selects scene 1. CALL/activate scene 1 by following with `BA 56 03` (RECALL). |
 | SCENE_SELECT_10 | scene | `BC 59 03` | confirmed | Selects scene 10. Verified by direct USB ALSA hardware test. |
 | SCENE_SELECT_2 | scene | `BC 56 03` | confirmed | Selects scene 2. Verified by direct USB ALSA hardware test. |
 | SCENE_SELECT_3 | scene | `BD 56 03` | confirmed | Selects scene 3. Verified by direct USB ALSA hardware test. |
@@ -134,3 +133,15 @@ The main protocol work still worth doing is:
 | RECORD | transport | `B9 57 03` | confirmed | RECORD BUTTON according to the official L12next MIDI implementation (CC 0x57, MIDI channel 10). On the tested mixer this was observed to arm channels while Overdub mode was active. |
 | REW | transport | `BC 57 03` | confirmed | Rewind command verified on hardware over USB ALSA. |
 | STOP | transport | `BB 57 03` | confirmed | Stops playback/transport. Verified by direct USB ALSA hardware test. |
+
+
+## Scene 1 CALL
+
+The verified sequence to activate scene 1 is:
+
+```
+BB 56 03  -> select scene 1
+BA 56 03  -> RECALL
+```
+
+The older `B7 57 03` mapping should not be used for scene 1.
