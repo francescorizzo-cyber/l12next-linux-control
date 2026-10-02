@@ -137,12 +137,21 @@ aplaymidi -p 24:0 /tmp/play.mid
 This confirms that the USB control path can accept at least some transport commands.
 
 
-## Scene selection verified over USB ALSA
+## Scene controls verified over USB ALSA
 
-Scene 3 selection was successfully replayed through the L12next USB ALSA sequencer port using:
+Direct hardware testing corrected the earlier interpretation:
 
 ```
 BD 56 03
 ```
 
-Observed behavior: the mixer selects scene 3. This confirms a scene-selection command, not yet a scene recall/call command.
+Behavior: enters/activates scene operation mode; the SAVE / RECALL / DELETE indicators blink.
+
+```
+BA 56 03
+```
+
+Behavior: triggers RECALL for the currently selected scene.
+
+The MIDI command that changes/selects the scene number itself is still to be identified.
+
