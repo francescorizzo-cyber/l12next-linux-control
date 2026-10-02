@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET. Official L12next MIDI table resolves the remaining scene controls: BC 59 03 = Scene 10, BD 59 03 = Scene Delete (value 03 follows verified button press convention). It also identifies B9 57 as RECORD BUTTON and BE 57 as OVERDUB MODE. CH1 fader confirmed from capture: B0 3C vv. Observed settled values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57. Fader control confirmed over USB ALSA: CH1=B0 3C vv, CH2=B1 3C vv. General pattern is Bn 3C vv for CH1..CH16 with absolute 7-bit values. Dedicated BLE REC/STOP capture reconfirmed state feedback: B8 57 05 = REC active, B8 57 00 = stopped. These are feedback/state messages, distinct from the control command B9 57 03."
+    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET. Official L12next MIDI table resolves the remaining scene controls: BC 59 03 = Scene 10, BD 59 03 = Scene Delete (value 03 follows verified button press convention). It also identifies B9 57 as RECORD BUTTON and BE 57 as OVERDUB MODE. CH1 fader confirmed from capture: B0 3C vv. Observed settled values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57. Fader control confirmed over USB ALSA: CH1=B0 3C vv, CH2=B1 3C vv. General pattern is Bn 3C vv for CH1..CH16 with absolute 7-bit values. Dedicated BLE REC/STOP capture reconfirmed state feedback: B8 57 05 = REC active, B8 57 00 = stopped. These are feedback/state messages, distinct from the control command B9 57 03. Scene 1 mapping canonicalized: BB 56 03 is the verified selector. The older B7 57 03 entry was removed as erroneous/obsolete. CALL scene 1 is SELECT (BB 56 03) followed by RECALL (BA 56 03)."
   },
   "commands": [
     {
@@ -92,9 +92,9 @@
     {
       "name": "SCENE_SELECT_1",
       "category": "scene",
-      "bytes": "B7 57 03",
+      "bytes": "BB 56 03",
       "status": "confirmed",
-      "description": "Selects scene 1; leaves scene operation pending until RECALL."
+      "description": "Selects scene 1. Verified by direct USB ALSA hardware test. To CALL/activate scene 1, follow with SCENE_RECALL (BA 56 03)."
     },
     {
       "name": "OVERDUB_MODE",
@@ -109,13 +109,6 @@
       "bytes": "B9 56 03",
       "status": "confirmed",
       "description": "Saves the currently selected scene. Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "SCENE_SELECT_1_ALT",
-      "category": "scene",
-      "bytes": "BB 56 03",
-      "status": "confirmed",
-      "description": "Selects scene 1. Verified by direct USB ALSA hardware test. This byte sequence is NOT DELETE."
     },
     {
       "name": "SCENE_SELECT_2",
