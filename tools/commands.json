@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Only commands explicitly verified on hardware are marked confirmed. Entries marked to_discover are protocol targets and are not sent by the tester."
+    "notes": "Only commands explicitly verified by replay on hardware are marked confirmed. Experimental entries were isolated from official-app captures and still require replay verification."
   },
   "commands": [
     {
@@ -22,23 +22,23 @@
     {
       "name": "PLAY",
       "category": "transport",
-      "bytes": "",
-      "status": "to_discover",
-      "description": "Playback transport command to reverse-engineer over BLE-MIDI; USB control did not work in prior tests."
+      "bytes": "BA 57 03",
+      "status": "experimental",
+      "description": "Candidate isolated from official-app BLE capture; replay test still required."
     },
     {
       "name": "FF",
       "category": "transport",
       "bytes": "",
       "status": "to_discover",
-      "description": "Fast-forward transport command to reverse-engineer over BLE-MIDI; USB control did not work in prior tests."
+      "description": "Not exposed by the official app; investigate separately from physical mixer controls/protocol patterns."
     },
     {
       "name": "REW",
       "category": "transport",
       "bytes": "",
       "status": "to_discover",
-      "description": "Rewind transport command to reverse-engineer over BLE-MIDI; USB control did not work in prior tests."
+      "description": "Not exposed by the official app; investigate separately from physical mixer controls/protocol patterns."
     }
   ]
 }
