@@ -2,15 +2,15 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Verified scene workflow over USB ALSA: B1 57 03 selects scene 7 and causes SAVE/RECALL/DELETE to blink; BA 56 03 then executes RECALL of the selected scene. Selection and recall are separate commands."
+    "notes": "USB ALSA scan of B0..BF with CC 0x57 value 0x03 mapped several commands. Confirmed by direct hardware observation: B0/B1/B2/B3 select scenes 6/7/8/9, B7 selects scene 1, B9 PLAY, BC REW, BD FF. B4 causes RESET. BE causes a transport mode the user described as OVERBURN; exact official label still needs verification. BA/BB/B5/B6/B8/BF not yet mapped by this scan."
   },
   "commands": [
     {
-      "name": "REC",
+      "name": "PLAY",
       "category": "transport",
       "bytes": "B9 57 03",
       "status": "confirmed",
-      "description": "Start recording"
+      "description": "Playback command verified on hardware over USB ALSA."
     },
     {
       "name": "STOP",
@@ -29,16 +29,16 @@
     {
       "name": "FF",
       "category": "transport",
-      "bytes": "",
-      "status": "to_discover",
-      "description": "Not exposed by the official app; investigate separately from physical mixer controls/protocol patterns."
+      "bytes": "BD 57 03",
+      "status": "confirmed",
+      "description": "Fast-forward command verified on hardware over USB ALSA."
     },
     {
       "name": "REW",
       "category": "transport",
-      "bytes": "",
-      "status": "to_discover",
-      "description": "Not exposed by the official app; investigate separately from physical mixer controls/protocol patterns."
+      "bytes": "BC 57 03",
+      "status": "confirmed",
+      "description": "Rewind command verified on hardware over USB ALSA."
     },
     {
       "name": "SCENE_MODE",
@@ -59,7 +59,49 @@
       "category": "scene",
       "bytes": "B1 57 03",
       "status": "confirmed",
-      "description": "Selects scene 7 and leaves scene operation pending: SAVE / RECALL / DELETE blink. A separate SCENE_RECALL command (BA 56 03) is required to activate/load the selected scene."
+      "description": "Selects scene 7; leaves scene operation pending until RECALL."
+    },
+    {
+      "name": "SCENE_SELECT_6",
+      "category": "scene",
+      "bytes": "B0 57 03",
+      "status": "confirmed",
+      "description": "Selects scene 6; leaves scene operation pending until RECALL."
+    },
+    {
+      "name": "SCENE_SELECT_8",
+      "category": "scene",
+      "bytes": "B2 57 03",
+      "status": "confirmed",
+      "description": "Selects scene 8; leaves scene operation pending until RECALL."
+    },
+    {
+      "name": "SCENE_SELECT_9",
+      "category": "scene",
+      "bytes": "B3 57 03",
+      "status": "confirmed",
+      "description": "Selects scene 9; leaves scene operation pending until RECALL."
+    },
+    {
+      "name": "RESET",
+      "category": "system",
+      "bytes": "B4 57 03",
+      "status": "observed",
+      "description": "Observed to trigger RESET on hardware; exact reset scope/effect should be characterized before automated use."
+    },
+    {
+      "name": "SCENE_SELECT_1",
+      "category": "scene",
+      "bytes": "B7 57 03",
+      "status": "confirmed",
+      "description": "Selects scene 1; leaves scene operation pending until RECALL."
+    },
+    {
+      "name": "OVERDUB",
+      "category": "transport",
+      "bytes": "BE 57 03",
+      "status": "observed",
+      "description": "Observed hardware action labeled by user as OVERBURN/overdub-like mode; exact semantics/name still to verify."
     }
   ]
 }
