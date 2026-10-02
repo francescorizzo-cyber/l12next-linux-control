@@ -228,3 +228,28 @@ BE 56 03 -> scene 4
 BF 56 03 -> scene 5
 B4 57 03 -> RESET
 ```
+
+
+## Official MIDI table: scene 10 and delete
+
+The L12next operation manual MIDI implementation table resolves the remaining scene controls:
+
+```
+BC 59 03 -> Scene 10 select
+BD 59 03 -> Scene DELETE
+```
+
+The status bytes follow MIDI channel numbering (B0 = channel 1), and the tested button-press value is `03`.
+
+The same official table identifies:
+
+```
+B9 57 03 -> RECORD BUTTON
+BA 57 03 -> PLAY
+BB 57 03 -> STOP
+BC 57 03 -> REW
+BD 57 03 -> FAST FORWARD
+BE 57 03 -> OVERDUB MODE
+```
+
+On the tested hardware, B9 57 03 was observed while Overdub mode was active and appeared to arm channels; the official parameter name is RECORD BUTTON.
