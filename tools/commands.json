@@ -2,7 +2,7 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Scene semantics corrected from direct hardware testing: BD 56 03 enters scene operation mode (SAVE/RECALL/DELETE blink); BA 56 03 triggers RECALL of the currently selected scene. The command that selects the scene number itself is still to be identified."
+    "notes": "Verified scene workflow over USB ALSA: B1 57 03 selects scene 7 and causes SAVE/RECALL/DELETE to blink; BA 56 03 then executes RECALL of the selected scene. Selection and recall are separate commands."
   },
   "commands": [
     {
@@ -53,6 +53,13 @@
       "bytes": "BA 56 03",
       "status": "confirmed",
       "description": "Triggers RECALL for the currently selected scene. Verified on hardware over USB ALSA."
+    },
+    {
+      "name": "SCENE_SELECT_7",
+      "category": "scene",
+      "bytes": "B1 57 03",
+      "status": "confirmed",
+      "description": "Selects scene 7 and leaves scene operation pending: SAVE / RECALL / DELETE blink. A separate SCENE_RECALL command (BA 56 03) is required to activate/load the selected scene."
     }
   ]
 }
