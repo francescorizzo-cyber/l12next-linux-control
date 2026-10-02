@@ -86,3 +86,21 @@ The next goal is an experimental Raspberry Pi "automatic sound engineer":
 ## Disclaimer
 
 Protocol details are based on observation and experimentation and are not official ZOOM documentation. They may change with firmware/app versions. Use at your own risk.
+
+
+## Current verified control coverage
+
+The project currently has verified USB ALSA control for:
+- transport: PLAY, STOP, REW, FF, RECORD / OVERDUB-related controls
+- scene selection 1-10, SAVE and RECALL
+- per-channel faders using `Bn 3C vv` (verified on CH1 and CH2)
+- AutoFonic gain/trim control already exists in the application logic
+
+### Next AutoFonic priorities
+
+The main protocol work still worth doing is:
+- real mixer feedback/state synchronization
+- per-channel mute
+- Monitor 1 / Monitor 2 sends
+- physical REC/STOP event synchronization
+- safer, slower gain correction using mixer state feedback
