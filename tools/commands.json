@@ -142,8 +142,8 @@
       "name": "SCENE_SELECT_10",
       "category": "scene",
       "bytes": "BC 59 03",
-      "status": "manual_confirmed",
-      "description": "Selects scene 10. Official L12next MIDI implementation lists CC 0x59 on MIDI channel 13 for Scene Number 10. Value 03 matches the button-press value verified for the other scene controls; hardware replay still recommended."
+      "status": "confirmed",
+      "description": "Selects scene 10. Verified by direct USB ALSA hardware test."
     },
     {
       "name": "SCENE_DELETE",
