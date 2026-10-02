@@ -205,3 +205,14 @@ BB 56 03
 Behavior: selects scene 1. It does **not** perform DELETE.
 
 Scene DELETE remains unidentified.
+
+
+## Correction: BD 56 03
+
+Direct hardware retest confirmed:
+
+```
+BD 56 03 -> selects scene 3
+```
+
+The previous interpretation of this message as entering scene-operation mode was incorrect.
