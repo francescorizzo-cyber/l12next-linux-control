@@ -2,15 +2,15 @@
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
     "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET."
+    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET. Official L12next MIDI table resolves the remaining scene controls: BC 59 03 = Scene 10, BD 59 03 = Scene Delete (value 03 follows verified button press convention). It also identifies B9 57 as RECORD BUTTON and BE 57 as OVERDUB MODE."
   },
   "commands": [
     {
-      "name": "OVERDUB_ALL_ARM",
-      "category": "recording",
+      "name": "RECORD",
+      "category": "transport",
       "bytes": "B9 57 03",
       "status": "confirmed",
-      "description": "Arms all channels in the mixer overdub/overburn mode, per direct hardware test. User described this as 'OVERBURN ALL CANAL'."
+      "description": "RECORD BUTTON according to the official L12next MIDI implementation (CC 0x57, MIDI channel 10). On the tested mixer this was observed to arm channels while Overdub mode was active."
     },
     {
       "name": "STOP",
@@ -97,11 +97,11 @@
       "description": "Selects scene 1; leaves scene operation pending until RECALL."
     },
     {
-      "name": "OVERDUB",
-      "category": "transport",
+      "name": "OVERDUB_MODE",
+      "category": "recording",
       "bytes": "BE 57 03",
-      "status": "observed",
-      "description": "Observed hardware action labeled by user as OVERBURN/overdub-like mode; exact semantics/name still to verify."
+      "status": "confirmed",
+      "description": "OVERDUB MODE button according to the official L12next MIDI implementation (CC 0x57, MIDI channel 15)."
     },
     {
       "name": "SCENE_SAVE",
@@ -137,6 +137,20 @@
       "bytes": "BF 56 03",
       "status": "confirmed",
       "description": "Selects scene 5. Verified by direct USB ALSA hardware test."
+    },
+    {
+      "name": "SCENE_SELECT_10",
+      "category": "scene",
+      "bytes": "BC 59 03",
+      "status": "manual_confirmed",
+      "description": "Selects scene 10. Official L12next MIDI implementation lists CC 0x59 on MIDI channel 13 for Scene Number 10. Value 03 matches the button-press value verified for the other scene controls; hardware replay still recommended."
+    },
+    {
+      "name": "SCENE_DELETE",
+      "category": "scene",
+      "bytes": "BD 59 03",
+      "status": "manual_confirmed",
+      "description": "Scene DELETE. Official L12next MIDI implementation lists CC 0x59 on MIDI channel 14 for Scene Delete. Value 03 matches the verified button-press convention; destructive hardware replay not yet performed."
     }
   ]
 }
