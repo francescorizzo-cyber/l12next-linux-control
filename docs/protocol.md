@@ -305,3 +305,33 @@ CH2 was also replay-tested successfully over the USB ALSA mixer control port, co
 ### AutoFonic impact
 
 AutoFonic already has gain/trim control logic. The newly confirmed fader mapping means the software can now control both gain/trim and per-channel fader levels. The next reverse-engineering priorities are mixer feedback/state synchronization, per-channel mute, monitor sends, and reliable physical REC/STOP state handling.
+
+
+## Complete command table
+
+| Command | Category | MIDI bytes | Status | Verified behavior / notes |
+|---|---|---|---|---|
+| CH1_FADER | channel | `B0 3C vv` | confirmed | Channel 1 fader, absolute 7-bit value. Verified via USB ALSA. Captured reference values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57. |
+| CH2_FADER | channel | `B1 3C vv` | confirmed | Channel 2 fader, absolute 7-bit value. Verified via USB ALSA. |
+| CHANNEL_FADER_PATTERN | channel | `Bn 3C vv` | confirmed | General fader pattern: MIDI status Bn selects mixer channel (n=0..15 => CH1..CH16), CC 0x3C, vv is absolute 7-bit fader position. Verified on CH1 and CH2 and generalized from MIDI channel mapping. |
+| OVERDUB_MODE | recording | `BE 57 03` | confirmed | OVERDUB MODE button according to the official L12next MIDI implementation (CC 0x57, MIDI channel 15). |
+| SCENE_DELETE | scene | `BD 59 03` | manual_confirmed | Scene DELETE. Official L12next MIDI implementation lists CC 0x59 on MIDI channel 14 for Scene Delete. Value 03 matches the verified button-press convention; destructive hardware replay not yet performed. |
+| SCENE_RECALL | scene | `BA 56 03` | confirmed | Triggers RECALL for the currently selected scene. Verified on hardware over USB ALSA. |
+| SCENE_SAVE | scene | `B9 56 03` | confirmed | Saves the currently selected scene. Verified by direct USB ALSA hardware test. |
+| SCENE_SELECT_1 | scene | `B7 57 03` | confirmed | Selects scene 1; leaves scene operation pending until RECALL. |
+| SCENE_SELECT_1_ALT | scene | `BB 56 03` | confirmed | Selects scene 1. Verified by direct USB ALSA hardware test. This byte sequence is NOT DELETE. |
+| SCENE_SELECT_10 | scene | `BC 59 03` | confirmed | Selects scene 10. Verified by direct USB ALSA hardware test. |
+| SCENE_SELECT_2 | scene | `BC 56 03` | confirmed | Selects scene 2. Verified by direct USB ALSA hardware test. |
+| SCENE_SELECT_3 | scene | `BD 56 03` | confirmed | Selects scene 3. Verified by direct USB ALSA hardware test. |
+| SCENE_SELECT_4 | scene | `BE 56 03` | confirmed | Selects scene 4. Verified by direct USB ALSA hardware test. |
+| SCENE_SELECT_5 | scene | `BF 56 03` | confirmed | Selects scene 5. Verified by direct USB ALSA hardware test. |
+| SCENE_SELECT_6 | scene | `B0 57 03` | confirmed | Selects scene 6; leaves scene operation pending until RECALL. |
+| SCENE_SELECT_7 | scene | `B1 57 03` | confirmed | Selects scene 7; leaves scene operation pending until RECALL. |
+| SCENE_SELECT_8 | scene | `B2 57 03` | confirmed | Selects scene 8; leaves scene operation pending until RECALL. |
+| SCENE_SELECT_9 | scene | `B3 57 03` | confirmed | Selects scene 9; leaves scene operation pending until RECALL. |
+| RESET | system | `B4 57 03` | confirmed | Triggers RESET. Reconfirmed by direct USB ALSA hardware test. |
+| FF | transport | `BD 57 03` | confirmed | Fast-forward command verified on hardware over USB ALSA. |
+| PLAY | transport | `BA 57 03` | confirmed | Starts playback ('PLAY SOUND'). Verified by direct USB ALSA hardware test. |
+| RECORD | transport | `B9 57 03` | confirmed | RECORD BUTTON according to the official L12next MIDI implementation (CC 0x57, MIDI channel 10). On the tested mixer this was observed to arm channels while Overdub mode was active. |
+| REW | transport | `BC 57 03` | confirmed | Rewind command verified on hardware over USB ALSA. |
+| STOP | transport | `BB 57 03` | confirmed | Stops playback/transport. Verified by direct USB ALSA hardware test. |
