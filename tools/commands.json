@@ -46,6 +46,13 @@
       "bytes": "BD 56 03",
       "status": "confirmed",
       "description": "Select scene 3. Verified on hardware over the USB ALSA Mixer Control Port; selects scene 3 without necessarily recalling it."
+    },
+    {
+      "name": "SCENE_ACTION_BA5603",
+      "category": "scene",
+      "bytes": "BA 56 03",
+      "status": "observed",
+      "description": "USB replay makes the scene indication blink. Exact semantics not yet confirmed; do not treat as a scene-number command."
     }
   ]
 }
