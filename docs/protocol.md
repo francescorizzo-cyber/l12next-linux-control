@@ -253,3 +253,25 @@ BE 57 03 -> OVERDUB MODE
 ```
 
 On the tested hardware, B9 57 03 was observed while Overdub mode was active and appeared to arm channels; the official parameter name is RECORD BUTTON.
+
+
+## CH1 fader mapping
+
+The official MIDI implementation assigns channel faders to CC 60 (`0x3C`), with the MIDI channel selecting the L12next mixer channel.
+
+A BLE/app capture of CH1 confirmed:
+
+```
+B0 3C vv
+```
+
+Observed settled values in the capture:
+
+```
+-inf dB   -> B0 3C 00
+~ -20 dB  -> B0 3C 1D
+~ -10 dB  -> B0 3C 35
+0 dB      -> B0 3C 57
+```
+
+Intermediate values were transmitted continuously while dragging the fader, indicating absolute 7-bit MIDI values rather than relative increments.
