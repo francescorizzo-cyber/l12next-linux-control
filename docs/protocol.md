@@ -37,6 +37,7 @@ A clean capture of official-app traffic revealed different commands. After separ
 
 ```
 REC   B9 57 03
+PLAY  BA 57 03
 STOP  BB 57 03
 ```
 
@@ -109,3 +110,28 @@ The ALSA card number is system-dependent and should eventually be discovered dyn
 ## Reproducibility
 
 Packet captures and proprietary application/firmware files are intentionally not required here. The repository documents the minimum observations needed to reproduce the tests.
+
+
+## PLAY verified over USB ALSA
+
+PLAY was successfully replayed through the L12next USB ALSA sequencer port using the MIDI bytes:
+
+```
+BA 57 03
+```
+
+On the tested Linux system the USB mixer control endpoint appeared as:
+
+```
+client 24: 'L12next'
+    0 'L12next Mixer Control Port'
+```
+
+A minimal MIDI file containing the event can be sent with `aplaymidi`:
+
+```bash
+printf '\x4d\x54\x68\x64\x00\x00\x00\x06\x00\x00\x00\x01\x00\x60\x4d\x54\x72\x6b\x00\x00\x00\x08\x00\xba\x57\x03\x00\xff\x2f\x00' > /tmp/play.mid
+aplaymidi -p 24:0 /tmp/play.mid
+```
+
+This confirms that the USB control path can accept at least some transport commands.
