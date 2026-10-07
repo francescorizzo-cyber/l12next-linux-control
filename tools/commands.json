@@ -1,184 +1,47 @@
 {
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
-    "transport": "BLE-MIDI via ALSA sequencer",
-    "notes": "Direct USB ALSA retest resolved the transport mapping: B9 57 03 arms all channels in overdub/overburn mode; BA 57 03 starts playback; BB 57 03 stops transport. Any previous interpretation of B9 as REC was incorrect and has been superseded. Scene SAVE is confirmed: B9 56 03 saves the currently selected scene over USB ALSA. BB 56 03 was tested and selects scene 1; it is not DELETE. Scene DELETE remains unknown. Correction from direct hardware retest: BD 56 03 selects scene 3. The earlier interpretation as entering scene mode was incorrect. Additional scene mapping confirmed over USB ALSA: BC 56 03 -> scene 2; BE 56 03 -> scene 4; BF 56 03 -> scene 5; B4 57 03 -> RESET. Official L12next MIDI table resolves the remaining scene controls: BC 59 03 = Scene 10, BD 59 03 = Scene Delete (value 03 follows verified button press convention). It also identifies B9 57 as RECORD BUTTON and BE 57 as OVERDUB MODE. CH1 fader confirmed from capture: B0 3C vv. Observed settled values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57. Fader control confirmed over USB ALSA: CH1=B0 3C vv, CH2=B1 3C vv. General pattern is Bn 3C vv for CH1..CH16 with absolute 7-bit values. Dedicated BLE REC/STOP capture reconfirmed state feedback: B8 57 05 = REC active, B8 57 00 = stopped. These are feedback/state messages, distinct from the control command B9 57 03. Scene 1 mapping canonicalized: BB 56 03 is the verified selector. The older B7 57 03 entry was removed as erroneous/obsolete. CALL scene 1 is SELECT (BB 56 03) followed by RECALL (BA 56 03)."
+    "generated_from": "L12next Control_decrypted.ipa",
+    "app_bundle_id": "jp.co.zoom.l12nextcontrol",
+    "binary_encryption": "cryptid 0 (decrypted dump)",
+    "evidence_levels": {
+      "confirmed": "replayed/observed on physical mixer",
+      "manual_confirmed": "matches official/manual/app mapping; destructive replay not performed",
+      "app_derived": "decoded from decrypted app recvCC table",
+      "app_derived_probable": "decoded from app structure with semantic identification not yet hardware-replayed"
+    },
+    "notes": "Feedback is kept in feedback.json."
   },
   "commands": [
-    {
-      "name": "RECORD",
-      "category": "transport",
-      "bytes": "B9 57 03",
-      "status": "confirmed",
-      "description": "RECORD BUTTON according to the official L12next MIDI implementation (CC 0x57, MIDI channel 10). On the tested mixer this was observed to arm channels while Overdub mode was active."
-    },
-    {
-      "name": "STOP",
-      "category": "transport",
-      "bytes": "BB 57 03",
-      "status": "confirmed",
-      "description": "Stops playback/transport. Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "PLAY",
-      "category": "transport",
-      "bytes": "BA 57 03",
-      "status": "confirmed",
-      "description": "Starts playback ('PLAY SOUND'). Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "FF",
-      "category": "transport",
-      "bytes": "BD 57 03",
-      "status": "confirmed",
-      "description": "Fast-forward command verified on hardware over USB ALSA."
-    },
-    {
-      "name": "REW",
-      "category": "transport",
-      "bytes": "BC 57 03",
-      "status": "confirmed",
-      "description": "Rewind command verified on hardware over USB ALSA."
-    },
-    {
-      "name": "SCENE_SELECT_3",
-      "category": "scene",
-      "bytes": "BD 56 03",
-      "status": "confirmed",
-      "description": "Selects scene 3. Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "SCENE_RECALL",
-      "category": "scene",
-      "bytes": "BA 56 03",
-      "status": "confirmed",
-      "description": "Triggers RECALL for the currently selected scene. Verified on hardware over USB ALSA."
-    },
-    {
-      "name": "SCENE_SELECT_7",
-      "category": "scene",
-      "bytes": "B1 57 03",
-      "status": "confirmed",
-      "description": "Selects scene 7; leaves scene operation pending until RECALL."
-    },
-    {
-      "name": "SCENE_SELECT_6",
-      "category": "scene",
-      "bytes": "B0 57 03",
-      "status": "confirmed",
-      "description": "Selects scene 6; leaves scene operation pending until RECALL."
-    },
-    {
-      "name": "SCENE_SELECT_8",
-      "category": "scene",
-      "bytes": "B2 57 03",
-      "status": "confirmed",
-      "description": "Selects scene 8; leaves scene operation pending until RECALL."
-    },
-    {
-      "name": "SCENE_SELECT_9",
-      "category": "scene",
-      "bytes": "B3 57 03",
-      "status": "confirmed",
-      "description": "Selects scene 9; leaves scene operation pending until RECALL."
-    },
-    {
-      "name": "RESET",
-      "category": "system",
-      "bytes": "B4 57 03",
-      "status": "confirmed",
-      "description": "Triggers RESET. Reconfirmed by direct USB ALSA hardware test."
-    },
-    {
-      "name": "SCENE_SELECT_1",
-      "category": "scene",
-      "bytes": "BB 56 03",
-      "status": "confirmed",
-      "description": "Selects scene 1. Verified by direct USB ALSA hardware test. To CALL/activate scene 1, follow with SCENE_RECALL (BA 56 03)."
-    },
-    {
-      "name": "OVERDUB_MODE",
-      "category": "recording",
-      "bytes": "BE 57 03",
-      "status": "confirmed",
-      "description": "OVERDUB MODE button according to the official L12next MIDI implementation (CC 0x57, MIDI channel 15)."
-    },
-    {
-      "name": "SCENE_SAVE",
-      "category": "scene",
-      "bytes": "B9 56 03",
-      "status": "confirmed",
-      "description": "Saves the currently selected scene. Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "SCENE_SELECT_2",
-      "category": "scene",
-      "bytes": "BC 56 03",
-      "status": "confirmed",
-      "description": "Selects scene 2. Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "SCENE_SELECT_4",
-      "category": "scene",
-      "bytes": "BE 56 03",
-      "status": "confirmed",
-      "description": "Selects scene 4. Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "SCENE_SELECT_5",
-      "category": "scene",
-      "bytes": "BF 56 03",
-      "status": "confirmed",
-      "description": "Selects scene 5. Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "SCENE_SELECT_10",
-      "category": "scene",
-      "bytes": "BC 59 03",
-      "status": "confirmed",
-      "description": "Selects scene 10. Verified by direct USB ALSA hardware test."
-    },
-    {
-      "name": "SCENE_DELETE",
-      "category": "scene",
-      "bytes": "BD 59 03",
-      "status": "manual_confirmed",
-      "description": "Scene DELETE. Official L12next MIDI implementation lists CC 0x59 on MIDI channel 14 for Scene Delete. Value 03 matches the verified button-press convention; destructive hardware replay not yet performed."
-    },
-    {
-      "name": "CH1_FADER",
-      "category": "channel",
-      "bytes": "B0 3C vv",
-      "status": "confirmed",
-      "description": "Channel 1 fader, absolute 7-bit value. Verified via USB ALSA. Captured reference values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57."
-    },
-    {
-      "name": "CH2_FADER",
-      "category": "channel",
-      "bytes": "B1 3C vv",
-      "status": "confirmed",
-      "description": "Channel 2 fader, absolute 7-bit value. Verified via USB ALSA."
-    },
-    {
-      "name": "CHANNEL_FADER_PATTERN",
-      "category": "channel",
-      "bytes": "Bn 3C vv",
-      "status": "confirmed",
-      "description": "General fader pattern: MIDI status Bn selects mixer channel (n=0..15 => CH1..CH16), CC 0x3C, vv is absolute 7-bit fader position. Verified on CH1 and CH2 and generalized from MIDI channel mapping."
-    },
-    {
-      "name": "REC_STATE_ACTIVE",
-      "category": "feedback",
-      "bytes": "B8 57 05",
-      "status": "confirmed",
-      "description": "Mixer/app feedback observed during REC state. In the dedicated REC/STOP BLE capture, B8 57 05 appears immediately after the REC operation and is treated as recording-active feedback."
-    },
-    {
-      "name": "REC_STATE_STOPPED",
-      "category": "feedback",
-      "bytes": "B8 57 00",
-      "status": "confirmed",
-      "description": "Mixer/app feedback observed for stopped recording/transport state. In the dedicated REC/STOP BLE capture, B8 57 00 appears after STOP and is treated as recording-stopped feedback."
-    }
-  ]
+    {"name":"RECORD","category":"transport","bytes":"B9 57 03","status":"confirmed","function_id":47},
+    {"name":"PLAY","category":"transport","bytes":"BA 57 03","status":"confirmed","function_id":48},
+    {"name":"STOP","category":"transport","bytes":"BB 57 03","status":"confirmed","function_id":49},
+    {"name":"REW","category":"transport","bytes":"BC 57 03","status":"confirmed","function_id":50},
+    {"name":"FF","category":"transport","bytes":"BD 57 03","status":"confirmed","function_id":51},
+    {"name":"OVERDUB_MODE","category":"recording","bytes":"BE 57 03","status":"confirmed","function_id":52},
+    {"name":"RESET","category":"system","bytes":"B4 57 03","status":"confirmed","function_id":42},
+    {"name":"SCENE_SAVE","category":"scene","bytes":"B9 56 03","status":"confirmed","function_id":39},
+    {"name":"SCENE_RECALL","category":"scene","bytes":"BA 56 03","status":"confirmed","function_id":40},
+    {"name":"SCENE_SELECT_1","category":"scene","bytes":"BB 56 03","status":"confirmed","function_id":41,"target_id":1},
+    {"name":"SCENE_SELECT_2","category":"scene","bytes":"BC 56 03","status":"confirmed","function_id":41,"target_id":2},
+    {"name":"SCENE_SELECT_3","category":"scene","bytes":"BD 56 03","status":"confirmed","function_id":41,"target_id":3},
+    {"name":"SCENE_SELECT_4","category":"scene","bytes":"BE 56 03","status":"confirmed","function_id":41,"target_id":4},
+    {"name":"SCENE_SELECT_5","category":"scene","bytes":"BF 56 03","status":"confirmed","function_id":41,"target_id":5},
+    {"name":"SCENE_SELECT_6","category":"scene","bytes":"B0 57 03","status":"confirmed","function_id":41,"target_id":6},
+    {"name":"SCENE_SELECT_7","category":"scene","bytes":"B1 57 03","status":"confirmed","function_id":41,"target_id":7},
+    {"name":"SCENE_SELECT_8","category":"scene","bytes":"B2 57 03","status":"confirmed","function_id":41,"target_id":8},
+    {"name":"SCENE_SELECT_9","category":"scene","bytes":"B3 57 03","status":"confirmed","function_id":41,"target_id":9},
+    {"name":"SCENE_SELECT_10","category":"scene","bytes":"BC 59 03","status":"confirmed","function_id":41,"target_id":10},
+    {"name":"SCENE_DELETE","category":"scene","bytes":"BD 59 03","status":"manual_confirmed","function_id":70},
+    {"name":"CH1_FADER","category":"channel","bytes":"B0 3C vv","status":"confirmed","function_id":15,"target_id":1},
+    {"name":"CH2_FADER","category":"channel","bytes":"B1 3C vv","status":"confirmed","function_id":15,"target_id":2},
+    {"name":"CHANNEL_FADER_FAMILY","category":"channel","bytes":"Bn 3C vv","status":"app_derived","function_id":15},
+    {"name":"PAN_FAMILY","category":"channel","bytes":"Bn 08 vv","status":"app_derived_probable","function_id":3}
+  ],
+  "reverse_engineering": {
+    "recv_cc_table_base_file_offset_hex":"0x7AEA4",
+    "entry_size_bytes":12,
+    "index_formula":"base + cc*0xC0 + midi_channel_zero_based*0x0C",
+    "entry_layout":["target_id:uint32_le","function_id:uint32_le","aux:uint32_le"]
+  }
 }
