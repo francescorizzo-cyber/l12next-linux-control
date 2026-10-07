@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "device": "ZOOM LiveTrak L12next",
+    "generated_from": "L12next Control_decrypted.ipa",
+    "app_bundle_id": "jp.co.zoom.l12nextcontrol",
+    "binary_encryption": "cryptid 0",
+    "recv_cc_table_entries_nonzero": 1464,
+    "distinct_cc_values_present": 93,
+    "function_id_range": [0,78],
+    "notes": "Summary of the recovered recvCC table. Unknown IDs are intentionally left unnamed."
+  },
+  "hardware_confirmed_feedback": [
+    {
+      "name":"REC_STATE_ACTIVE",
+      "bytes":"B8 57 05",
+      "direction":"mixer_to_host",
+      "status":"confirmed",
+      "function_id":46,
+      "meaning":"Recording active",
+      "autofonic_action":"AUTOREC ON"
+    },
+    {
+      "name":"REC_STATE_STOPPED",
+      "bytes":"B8 57 00",
+      "direction":"mixer_to_host",
+      "status":"confirmed",
+      "function_id":46,
+      "meaning":"Recording inactive / stopped",
+      "autofonic_action":"AUTOREC OFF"
+    }
+  ],
+  "app_feedback_capabilities": {
+    "event_strings":["TrackParamUpdated","MasterParamUpdated","Scene Changed","Meters Changed"],
+    "parser_strings":[
+      "ERROR: invalid indexes for recvCC lookup table!",
+      "WARNING: received unhandled CC",
+      "Undefined sysEx MIDI message processing cmd"
+    ]
+  },
+  "recv_cc_table": {
+    "base_file_offset_hex":"0x7AEA4",
+    "entry_size_bytes":12,
+    "dimensions":{"cc":128,"midi_channels":16},
+    "index_formula":"base + cc*0xC0 + midi_channel_zero_based*0x0C",
+    "entry_layout":["target_id:uint32_le","function_id:uint32_le","aux:uint32_le"],
+    "known_function_ids":{
+      "3":{"name":"PAN","confidence":"app_derived_probable"},
+      "15":{"name":"FADER","confidence":"app_derived_and_hardware_confirmed"},
+      "39":{"name":"SCENE_SAVE","confidence":"app_derived_and_hardware_confirmed"},
+      "40":{"name":"SCENE_RECALL","confidence":"app_derived_and_hardware_confirmed"},
+      "41":{"name":"SCENE_SELECT","confidence":"app_derived_and_hardware_confirmed"},
+      "42":{"name":"RESET","confidence":"app_derived_and_hardware_confirmed"},
+      "46":{"name":"RECORD_STATE","confidence":"app_derived_and_hardware_confirmed"},
+      "47":{"name":"RECORD_BUTTON","confidence":"app_derived_and_hardware_confirmed"},
+      "48":{"name":"PLAY","confidence":"app_derived_and_hardware_confirmed"},
+      "49":{"name":"STOP","confidence":"app_derived_and_hardware_confirmed"},
+      "50":{"name":"REW","confidence":"app_derived_and_hardware_confirmed"},
+      "51":{"name":"FAST_FORWARD","confidence":"app_derived_and_hardware_confirmed"},
+      "52":{"name":"OVERDUB_MODE","confidence":"app_derived_and_hardware_confirmed"},
+      "70":{"name":"SCENE_DELETE","confidence":"app_derived_and_manual_confirmed"}
+    },
+    "function_counts":{
+      "0":1100,"1":10,"2":2,"3":10,"4":10,"5":10,"6":18,"7":18,"8":18,"9":10,
+      "10":10,"11":10,"12":10,"13":10,"14":10,"15":18,"16":10,"17":10,"18":10,
+      "19":10,"20":10,"21":1,"22":2,"23":2,"24":1,"25":1,"26":1,"27":2,"28":1,
+      "29":2,"30":1,"31":2,"32":5,"33":1,"34":1,"35":1,"36":1,"37":1,"38":1,
+      "39":1,"40":1,"41":10,"42":1,"43":1,"44":1,"45":1,"46":1,"47":1,"48":1,
+      "49":1,"50":1,"51":1,"52":1,"53":1,"54":1,"55":4,"56":4,"57":4,"58":1,
+      "59":1,"60":1,"61":1,"62":1,"63":1,"64":1,"65":1,"66":1,"67":1,"68":2,
+      "69":1,"70":1,"71":10,"72":8,"73":8,"74":8,"75":8,"76":8,"77":2,"78":10
+    }
+  },
+  "next_targets":[
+    "Resolve semantic names for remaining function IDs",
+    "Extract SysEx dispatcher command IDs and payload layouts",
+    "Extract meter packet framing and channel order",
+    "Validate physical feedback for fader, pan, mute, scene and monitor changes"
+  ]
+}
