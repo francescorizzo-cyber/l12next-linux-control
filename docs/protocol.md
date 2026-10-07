@@ -1,381 +1,185 @@
-# L12next BLE-MIDI protocol notes
+# ZOOM LiveTrak L12next – protocol reverse engineering
 
 ## Status
 
-Experimental reverse engineering. These notes describe observed behaviour, not an official protocol specification.
+This document combines three evidence classes:
 
-## Test path
+- **hardware-confirmed**: replayed or observed on the physical L12next;
+- **manual/app-confirmed**: supported by the official MIDI implementation and/or the decrypted official app;
+- **app-derived**: recovered from `L12next Control_decrypted.ipa` and not yet replay-tested.
 
-- ZOOM LiveTrak L12next
-- ZOOM BTA-1
-- Linux / Raspberry Pi
-- ALSA MIDI
-- BLE traffic captured while the official L12next control application operated the mixer
+The decrypted Mach-O reports `LC_ENCRYPTION_INFO_64` with `cryptid 0`.
 
-## BLE observation
+## Transport and BLE
 
-A GATT characteristic observed during investigation was:
+Observed BLE GATT characteristic:
 
-```
+```text
 7772e5db-3868-4112-a1a9-f2669d106bf3
 ```
 
-Notifications from this characteristic included mixer state and MIDI-like traffic.
+USB ALSA has also accepted the same three-byte MIDI Control Change messages.
 
-## Feedback is not necessarily a command
+## Confirmed commands
 
-Physical transport-button activity produced messages including:
+| Command | Bytes | Evidence |
+|---|---|---|
+| RECORD | `B9 57 03` | hardware + app function 47 |
+| PLAY | `BA 57 03` | hardware + app function 48 |
+| STOP | `BB 57 03` | hardware + app function 49 |
+| REW | `BC 57 03` | hardware + app function 50 |
+| FF | `BD 57 03` | hardware + app function 51 |
+| OVERDUB MODE | `BE 57 03` | app/manual + hardware-compatible, function 52 |
+| RESET | `B4 57 03` | hardware + app function 42 |
+| SCENE SAVE | `B9 56 03` | hardware + app function 39 |
+| SCENE RECALL | `BA 56 03` | hardware + app function 40 |
+| SCENE DELETE | `BD 59 03` | app/manual; destructive replay not performed |
 
-```
-B8 57 05
-B8 57 00
-```
+### Scene selection
 
-Sending those values back did not reproduce remote transport operation.
+| Scene | Bytes |
+|---:|---|
+| 1 | `BB 56 03` |
+| 2 | `BC 56 03` |
+| 3 | `BD 56 03` |
+| 4 | `BE 56 03` |
+| 5 | `BF 56 03` |
+| 6 | `B0 57 03` |
+| 7 | `B1 57 03` |
+| 8 | `B2 57 03` |
+| 9 | `B3 57 03` |
+| 10 | `BC 59 03` |
 
-A clean capture of official-app traffic revealed different commands. After separating the BLE-MIDI timestamp bytes, the experimentally verified commands are:
+All ten scene selectors map to **function ID 41**, with `target_id` 1..10.
 
-```
-OVERDUB_ALL_ARM  B9 57 03
-PLAY              BA 57 03
-STOP              BB 57 03
-```
+To call scene 1:
 
-Sending these from Linux over the established BLE-MIDI ALSA connection successfully started and stopped recording.
-
-## Transport targets still to reverse-engineer
-
-The following transport controls are explicitly included in the reverse-engineering plan because they did not work through the previous USB control path:
-
-- PLAY
-- FF (fast forward)
-- REW (rewind)
-
-Their BLE-MIDI bytes are not yet known, so they are recorded in `tools/commands.json` with status `to_discover`. The interactive tester will not transmit them until capture analysis gives us candidate bytes and we deliberately mark those candidates as `experimental`.
-
-## Linux verification
-
-Find the current ALSA sequencer client:
-
-```bash
-aconnect -l
-```
-
-Replace `128:0` below with the current L12next port.
-
-### REC
-
-```bash
-printf '\xB9\x57\x03' > /tmp/rec.bin
-aseqsend -p 128:0 -s /tmp/rec.bin
+```text
+BB 56 03   # select scene 1
+BA 56 03   # recall
 ```
 
-### STOP
+The obsolete `B7 57 03` scene-1 mapping must not be used.
 
-```bash
-printf '\xBB\x57\x03' > /tmp/stop.bin
-aseqsend -p 128:0 -s /tmp/stop.bin
+## Fader
+
+The app table identifies **function ID 15** as the fader family at CC `0x3C`.
+
+Hardware-confirmed:
+
+```text
+B0 3C vv   # CH1 fader
+B1 3C vv   # CH2 fader
 ```
 
-## USB audio interface
+Observed CH1 reference values:
 
-The ALSA hardware-parameter query reported:
-
-```
-CHANNELS: 14
-RATE: 48000
-FORMAT: S32_LE FLOAT_LE
-SAMPLE_BITS: 32
-FRAME_BITS: 448
+```text
+00   -inf
+1D   approximately -20 dB
+35   approximately -10 dB
+57   approximately 0 dB
 ```
 
-Example capture test:
+## Pan
 
-```bash
-arecord -D hw:2,0 -f S32_LE -r 48000 -c 14 -d 10 /tmp/l12-test.wav
+The decrypted app maps CC `0x08` to **function ID 3** over normal strip targets. This is currently **app-derived probable** and should be replay-tested before promotion to confirmed.
+
+## Feedback
+
+Feedback is distinct from commands.
+
+Hardware-confirmed recording state:
+
+```text
+B8 57 05   # REC active
+B8 57 00   # recording inactive / STOP
 ```
 
-The ALSA card number is system-dependent and should eventually be discovered dynamically.
+The decrypted app maps `B8 / CC 0x57` to **function ID 46**.
 
-## Next investigations
+Recommended AutoFonic behavior:
 
-- reverse-engineer PLAY, FF and REW over BLE-MIDI;
-- map all 14 USB capture channels;
-- build real-time RMS/peak meters;
-- determine robust performance/silence thresholds;
-- dynamically discover the BLE-MIDI ALSA destination;
-- map mixer fader/control messages;
-- verify read-back/state synchronization before automatic level changes.
-
-## Reproducibility
-
-Packet captures and proprietary application/firmware files are intentionally not required here. The repository documents the minimum observations needed to reproduce the tests.
-
-
-## PLAY verified over USB ALSA
-
-PLAY was successfully replayed through the L12next USB ALSA sequencer port using the MIDI bytes:
-
-```
-BA 57 03
+```text
+B8 57 05 -> AUTOREC ON
+B8 57 00 -> AUTOREC OFF
 ```
 
-On the tested Linux system the USB mixer control endpoint appeared as:
+### Incoming CC lookup table
 
-```
-client 24: 'L12next'
-    0 'L12next Mixer Control Port'
-```
+A full `recvCC` lookup table is present in the decrypted Mach-O.
 
-A minimal MIDI file containing the event can be sent with `aplaymidi`:
+- file offset: `0x7AEA4`
+- dimensions: `128 CC × 16 MIDI channels`
+- entry size: `12` bytes
+- non-zero entries recovered: **1464**
+- distinct CC values represented: **93**
+- function IDs observed: **0..78**
 
-```bash
-printf '\x4d\x54\x68\x64\x00\x00\x00\x06\x00\x00\x00\x01\x00\x60\x4d\x54\x72\x6b\x00\x00\x00\x08\x00\xba\x57\x03\x00\xff\x2f\x00' > /tmp/play.mid
-aplaymidi -p 24:0 /tmp/play.mid
-```
+Indexing:
 
-This confirms that the USB control path can accept at least some transport commands.
-
-
-## Scene controls verified over USB ALSA
-
-Direct hardware testing corrected the earlier interpretation:
-
-```
-BD 56 03
+```text
+entry = base + CC * 0xC0 + midi_channel_zero_based * 0x0C
 ```
 
-Behavior: enters/activates scene operation mode; the SAVE / RECALL / DELETE indicators blink.
+Each entry is:
 
-```
-BA 56 03
-```
-
-Behavior: triggers RECALL for the currently selected scene.
-
-The MIDI command that changes/selects the scene number itself is still to be identified.
-
-
-
-## Scene 7 selection verified
-
-```
-B1 57 03
+```text
+uint32_le target_id
+uint32_le function_id
+uint32_le aux
 ```
 
-Behavior: selects scene 7. SAVE / RECALL / DELETE blink, indicating the selection is pending.
+`tools/feedback.json` records table structure, function counts and currently identified semantics. Unknown IDs remain intentionally unnamed.
 
-The selected scene is not activated until RECALL is sent separately:
+Known function IDs:
 
-```
-BA 56 03
-```
+| Function ID | Meaning | Confidence |
+|---:|---|---|
+| 3 | PAN | app-derived probable |
+| 15 | FADER | app + hardware |
+| 39 | SCENE SAVE | app + hardware |
+| 40 | SCENE RECALL | app + hardware |
+| 41 | SCENE SELECT | app + hardware |
+| 42 | RESET | app + hardware |
+| 46 | RECORD STATE | app + hardware |
+| 47 | RECORD BUTTON | app + hardware |
+| 48 | PLAY | app + hardware |
+| 49 | STOP | app + hardware |
+| 50 | REW | app + hardware |
+| 51 | FAST FORWARD | app + hardware |
+| 52 | OVERDUB MODE | app/manual |
+| 70 | SCENE DELETE | app/manual |
 
-Therefore scene selection and scene recall are two distinct operations.
+## SysEx and meters
 
+The decrypted app contains explicit incoming handlers evidenced by strings including:
 
-## Corrected transport / recording mapping
-
-A direct USB ALSA hardware retest established:
-
-```
-B9 57 03  -> arms all channels in overdub/overburn mode
-BA 57 03  -> PLAY SOUND
-BB 57 03  -> STOP
-```
-
-The earlier interpretation of `B9 57 03` as REC was incorrect and is superseded by this hardware test.
-
-
-## Scene SAVE verified
-
-```
-B9 56 03
-```
-
-Behavior: saves the currently selected scene. Verified by direct USB ALSA replay on hardware.
-
-
-## Correction: BB 56 03
-
-```
-BB 56 03
+```text
+TrackParamUpdated
+MasterParamUpdated
+Scene Changed
+Meters Changed
+ERROR: invalid indexes for recvCC lookup table!
+WARNING: received unhandled CC
+Undefined sysEx MIDI message processing cmd
 ```
 
-Behavior: selects scene 1. It does **not** perform DELETE.
+This establishes dedicated parsing paths for incoming CC, SysEx and meter/state traffic. It does **not yet** establish the meter frame layout or all SysEx command IDs.
 
-Scene DELETE remains unidentified.
+Next reverse-engineering stage:
 
+1. resolve the remaining function IDs by following the receive switch/jump table;
+2. extract the SysEx dispatcher and payload structures;
+3. extract meter framing/channel ordering;
+4. replay-test fader/pan/mute/monitor feedback and promote confirmed mappings.
 
-## Correction: BD 56 03
+## AutoFonic integration model
 
-Direct hardware retest confirmed:
-
-```
-BD 56 03 -> selects scene 3
-```
-
-The previous interpretation of this message as entering scene-operation mode was incorrect.
-
-
-## Additional scene mapping confirmed
-
-Direct USB ALSA tests confirmed:
-
-```
-BC 56 03 -> scene 2
-BE 56 03 -> scene 4
-BF 56 03 -> scene 5
-B4 57 03 -> RESET
+```text
+L12next -> incoming CC / SysEx / meters -> state cache -> GUI / AI
+                                         |
+AutoFonic commands ----------------------+
 ```
 
-
-## Official MIDI table: scene 10 and delete
-
-The L12next operation manual MIDI implementation table resolves the remaining scene controls:
-
-```
-BC 59 03 -> Scene 10 select
-BD 59 03 -> Scene DELETE
-```
-
-The status bytes follow MIDI channel numbering (B0 = channel 1), and the tested button-press value is `03`.
-
-The same official table identifies:
-
-```
-B9 57 03 -> RECORD BUTTON
-BA 57 03 -> PLAY
-BB 57 03 -> STOP
-BC 57 03 -> REW
-BD 57 03 -> FAST FORWARD
-BE 57 03 -> OVERDUB MODE
-```
-
-On the tested hardware, B9 57 03 was observed while Overdub mode was active and appeared to arm channels; the official parameter name is RECORD BUTTON.
-
-
-## CH1 fader mapping
-
-The official MIDI implementation assigns channel faders to CC 60 (`0x3C`), with the MIDI channel selecting the L12next mixer channel.
-
-A BLE/app capture of CH1 confirmed:
-
-```
-B0 3C vv
-```
-
-Observed settled values in the capture:
-
-```
--inf dB   -> B0 3C 00
-~ -20 dB  -> B0 3C 1D
-~ -10 dB  -> B0 3C 35
-0 dB      -> B0 3C 57
-```
-
-Intermediate values were transmitted continuously while dragging the fader, indicating absolute 7-bit MIDI values rather than relative increments.
-
-
-## General channel fader pattern
-
-Direct USB ALSA tests confirmed the per-channel fader pattern:
-
-```
-CH1  -> B0 3C vv
-CH2  -> B1 3C vv
-CH3  -> B2 3C vv
-...
-CH16 -> BF 3C vv
-```
-
-`0x3C` is the fader controller and `vv` is an absolute 7-bit position.
-
-Verified reference points captured on CH1:
-
-```
--inf dB   -> 00
-~ -20 dB  -> 1D
-~ -10 dB  -> 35
-0 dB      -> 57
-```
-
-CH2 was also replay-tested successfully over the USB ALSA mixer control port, confirming that the MIDI status nibble selects the mixer channel.
-
-### AutoFonic impact
-
-AutoFonic already has gain/trim control logic. The newly confirmed fader mapping means the software can now control both gain/trim and per-channel fader levels. The next reverse-engineering priorities are mixer feedback/state synchronization, per-channel mute, monitor sends, and reliable physical REC/STOP state handling.
-
-
-## Complete command table
-
-| Command | Category | MIDI bytes | Status | Verified behavior / notes |
-|---|---|---|---|---|
-| CH1_FADER | channel | `B0 3C vv` | confirmed | Channel 1 fader, absolute 7-bit value. Verified via USB ALSA. Captured reference values: -inf=00, ~-20dB=1D, ~-10dB=35, 0dB=57. |
-| CH2_FADER | channel | `B1 3C vv` | confirmed | Channel 2 fader, absolute 7-bit value. Verified via USB ALSA. |
-| CHANNEL_FADER_PATTERN | channel | `Bn 3C vv` | confirmed | General fader pattern: MIDI status Bn selects mixer channel (n=0..15 => CH1..CH16), CC 0x3C, vv is absolute 7-bit fader position. Verified on CH1 and CH2 and generalized from MIDI channel mapping. |
-| OVERDUB_MODE | recording | `BE 57 03` | confirmed | OVERDUB MODE button according to the official L12next MIDI implementation (CC 0x57, MIDI channel 15). |
-| SCENE_DELETE | scene | `BD 59 03` | manual_confirmed | Scene DELETE. Official L12next MIDI implementation lists CC 0x59 on MIDI channel 14 for Scene Delete. Value 03 matches the verified button-press convention; destructive hardware replay not yet performed. |
-| SCENE_RECALL | scene | `BA 56 03` | confirmed | Triggers RECALL for the currently selected scene. Verified on hardware over USB ALSA. |
-| SCENE_SAVE | scene | `B9 56 03` | confirmed | Saves the currently selected scene. Verified by direct USB ALSA hardware test. |
-| SCENE_SELECT_1 | scene | `B7 57 03` | confirmed | Selects scene 1; leaves scene operation pending until RECALL. |
-| SCENE_SELECT_1_ALT | scene | `BB 56 03` | confirmed | Selects scene 1. Verified by direct USB ALSA hardware test. This byte sequence is NOT DELETE. |
-| SCENE_SELECT_10 | scene | `BC 59 03` | confirmed | Selects scene 10. Verified by direct USB ALSA hardware test. |
-| SCENE_SELECT_2 | scene | `BC 56 03` | confirmed | Selects scene 2. Verified by direct USB ALSA hardware test. |
-| SCENE_SELECT_3 | scene | `BD 56 03` | confirmed | Selects scene 3. Verified by direct USB ALSA hardware test. |
-| SCENE_SELECT_4 | scene | `BE 56 03` | confirmed | Selects scene 4. Verified by direct USB ALSA hardware test. |
-| SCENE_SELECT_5 | scene | `BF 56 03` | confirmed | Selects scene 5. Verified by direct USB ALSA hardware test. |
-| SCENE_SELECT_6 | scene | `B0 57 03` | confirmed | Selects scene 6; leaves scene operation pending until RECALL. |
-| SCENE_SELECT_7 | scene | `B1 57 03` | confirmed | Selects scene 7; leaves scene operation pending until RECALL. |
-| SCENE_SELECT_8 | scene | `B2 57 03` | confirmed | Selects scene 8; leaves scene operation pending until RECALL. |
-| SCENE_SELECT_9 | scene | `B3 57 03` | confirmed | Selects scene 9; leaves scene operation pending until RECALL. |
-| RESET | system | `B4 57 03` | confirmed | Triggers RESET. Reconfirmed by direct USB ALSA hardware test. |
-| FF | transport | `BD 57 03` | confirmed | Fast-forward command verified on hardware over USB ALSA. |
-| PLAY | transport | `BA 57 03` | confirmed | Starts playback ('PLAY SOUND'). Verified by direct USB ALSA hardware test. |
-| RECORD | transport | `B9 57 03` | confirmed | RECORD BUTTON according to the official L12next MIDI implementation (CC 0x57, MIDI channel 10). On the tested mixer this was observed to arm channels while Overdub mode was active. |
-| REW | transport | `BC 57 03` | confirmed | Rewind command verified on hardware over USB ALSA. |
-| STOP | transport | `BB 57 03` | confirmed | Stops playback/transport. Verified by direct USB ALSA hardware test. |
-
-
-## REC/STOP feedback
-
-A dedicated BLE capture while operating REC/STOP confirmed the recording-state feedback messages:
-
-```
-B8 57 05 -> REC active
-B8 57 00 -> STOP / recording inactive
-```
-
-These are state/feedback messages and should be kept separate from control commands such as:
-
-```
-B9 57 03 -> RECORD button command
-BB 57 03 -> STOP button command
-```
-
-For AutoFonic, the intended state synchronization is:
-
-```
-B8 57 05 -> physical/external REC state observed -> AUTOREC ON
-B8 57 00 -> physical/external STOP state observed -> AUTOREC OFF
-```
-
-The dedicated capture also contained `B9 57 03` shortly before `B8 57 05`, consistent with command followed by state feedback.
-
-
-## Scene 1 CALL sequence
-
-Scene 1 selection is:
-
-```
-BB 56 03
-```
-
-To actually CALL/activate scene 1, send:
-
-```
-BB 56 03  -> select scene 1
-BA 56 03  -> RECALL selected scene
-```
-
-The older `B7 57 03` scene-1 mapping is obsolete and should not be used.
+AutoFonic should treat the mixer as the source of truth so physical movements, scene changes and transport state remain synchronized.
