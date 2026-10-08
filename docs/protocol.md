@@ -1,113 +1,92 @@
-# ZOOM LiveTrak L12next – reverse engineered protocol
+# ZOOM LiveTrak L12next – protocol reverse engineering
 
 ## Status
 
-This document consolidates the reverse engineering of the ZOOM LiveTrak L12next control protocol from:
-
-- hardware observation/replay;
-- official ZOOM MIDI documentation;
-- static analysis of the decrypted official `L12next Control` app.
+Static reverse engineering of the official decrypted `L12next Control` app is complete to the point supported by the binary. Remaining unknown labels are fields whose values are parsed/stored but whose semantic names are not exposed by the application. Hardware validation is still useful for meter dB thresholds and complete live captures.
 
 Evidence labels:
 
 - **hardware-confirmed** – observed/replayed on the physical mixer;
-- **manual-confirmed** – present in official ZOOM MIDI documentation;
-- **app-derived** – recovered from the decrypted app;
-- **app-derived-strong** – recovered by direct parser/serializer/control-flow analysis;
-- **probable** – strongly suggested but not yet hardware-validated;
-- **unresolved** – structure known, exact semantic label still open.
-
-The decrypted Mach-O reports `cryptid 0`.
+- **manual-confirmed** – confirmed by ZOOM documentation;
+- **app-derived-strong** – directly recovered from parser/serializer/control flow;
+- **opaque** – wire/storage format is known but the app does not expose a reliable semantic label.
 
 ---
 
-# 1. MIDI Control Change layer
+# 1. MIDI CC layer
 
-## recvCC table
-
-Recovered table:
+Incoming lookup table:
 
 ```text
 file offset : 0x7AEA4
 dimensions  : 128 CC × 16 MIDI channels
 entry size  : 12 bytes
-index       : base + CC*0xC0 + midi_channel_zero_based*0x0C
 entry       : target_id:uint32_le, function_id:uint32_le, aux:uint32_le
+index       : base + CC*0xC0 + channel_zero_based*0x0C
 ```
 
-Core function map:
+Core function IDs:
 
-| Function ID | CC | Meaning |
-|---:|---:|---|
-| 1 | 0x01 | COMP |
-| 2 | 0x03 | USB INPUT SELECT |
-| 3 | 0x08 | CHANNEL SELECT BUTTON |
-| 4 | 0x0A | PHASE |
-| 5 | 0x0C | PAN |
-| 6 | 0x14 | EQ HIGH |
-| 7 | 0x18 | EQ MID FREQ |
-| 8 | 0x1A | EQ MID GAIN |
-| 9 | 0x1C | EQ MID Q |
-| 10 | 0x2C | EQ LOW |
-| 11 | 0x2E | LOCUT |
-| 12 | 0x30 | MUTE |
-| 13 | 0x32 | SOLO |
-| 14 | 0x34 | SEND EFX |
-| 15 | 0x3C | FADER |
-| 16 | 0x3E | SEND A |
-| 17 | 0x40 | SEND B |
-| 18 | 0x42 | SEND C |
-| 19 | 0x44 | SEND D |
-| 20 | 0x46 | SEND E |
-| 21 | 0x4E | EFX TYPE |
-| 22 | 0x4E | EFX TONE/TIME 14-bit pair |
-| 23 | 0x4E | EFX DECAY/FEEDBACK 14-bit pair |
-| 24 | 0x50 | EFX MUTE |
-| 25 | 0x50 | EFX SOLO |
-| 26 | 0x50 | EFX RETURN FADER |
-| 27..31 | 0x51..0x52 | EFX RETURN A..E |
-| 32 | 0x53 | MONITOR VOLUME A..E |
-| 34 | 0x54 | MASTER MUTE |
-| 35 | 0x54 | MASTER FADER |
-| 36 | 0x54 | MASTER COMP |
-| 37 | 0x55 | MASTER EQ GLOBAL ON |
-| 39 | 0x56 | SCENE SAVE |
-| 40 | 0x56 | SCENE RECALL |
-| 41 | 0x56/0x57/0x59 | SCENE SELECT |
-| 42 | 0x57 | SCENE RESET |
-| 46 | 0x57 | RECORD STATE |
-| 47 | 0x57 | RECORD BUTTON |
-| 48 | 0x57 | PLAY |
-| 49 | 0x57 | STOP |
-| 50 | 0x57 | REW |
-| 51 | 0x57 | FAST FORWARD |
-| 52 | 0x57 | OVERDUB |
-| 53 | 0x57 | MARK STATUS |
-| 54 | 0x58 | MARK NUMBER |
-| 58 | 0x59 | SAMPLING RATE |
-| 59 | 0x59 | BIT DEPTH |
-| 60 | 0x59 | SD CARD ICON |
-| 61 | 0x59 | METRONOME ICON |
-| 62 | 0x59 | PLAY MODE |
-| 63 | 0x59 | PROJECT PROTECT |
-| 64 | 0x59 | PREVIOUS PROJECT EXISTS |
-| 65 | 0x59 | NEXT PROJECT EXISTS |
-| 70 | 0x59 | SCENE DELETE |
-| 71 | 0x5A | GAIN |
-| 72 | 0x5C..0x5E | MASTER EQ BAND ON |
-| 73 | 0x5C..0x5E | MASTER EQ TYPE |
-| 74 | 0x5C..0x5E | MASTER EQ FREQ |
-| 75 | 0x5C..0x5E | MASTER EQ Q |
-| 76 | 0x5C..0x5E | MASTER EQ GAIN |
-| 78 | 0x60 | GAIN BOOST |
-
-Important correction: function 3 is CHANNEL SELECT, while PAN is function 5.
+| ID | Meaning |
+|---:|---|
+| 1 | COMP |
+| 2 | USB INPUT SELECT |
+| 3 | CHANNEL SELECT |
+| 4 | PHASE |
+| 5 | PAN |
+| 6 | EQ HIGH |
+| 7 | EQ MID FREQ |
+| 8 | EQ MID GAIN |
+| 9 | EQ MID Q |
+| 10 | EQ LOW |
+| 11 | LOCUT |
+| 12 | MUTE |
+| 13 | SOLO |
+| 14 | SEND EFX |
+| 15 | FADER |
+| 16..20 | SEND A..E |
+| 21 | EFX TYPE |
+| 22 | EFX TONE/TIME |
+| 23 | EFX DECAY/FEEDBACK |
+| 24 | EFX MUTE |
+| 25 | EFX SOLO |
+| 26 | EFX RETURN FADER |
+| 27..31 | EFX RETURN A..E |
+| 32 | MONITOR VOLUME A..E |
+| 34 | MASTER MUTE |
+| 35 | MASTER FADER |
+| 36 | MASTER COMP |
+| 37 | MASTER EQ GLOBAL ON |
+| 39 | SCENE SAVE |
+| 40 | SCENE RECALL |
+| 41 | SCENE SELECT |
+| 42 | SCENE RESET |
+| 46 | RECORD STATE |
+| 47 | RECORD BUTTON |
+| 48 | PLAY |
+| 49 | STOP |
+| 50 | REW |
+| 51 | FAST FORWARD |
+| 52 | OVERDUB |
+| 53 | MARK STATUS |
+| 54 | MARK NUMBER |
+| 58 | SAMPLING RATE |
+| 59 | BIT DEPTH |
+| 60 | SD CARD ICON |
+| 61 | METRONOME ICON |
+| 62 | PLAY MODE |
+| 63 | PROJECT PROTECT |
+| 64 | PREVIOUS PROJECT EXISTS |
+| 65 | NEXT PROJECT EXISTS |
+| 70 | SCENE DELETE |
+| 71 | GAIN |
+| 72..76 | MASTER EQ band fields |
+| 77 | EFX auxiliary 14-bit pair at 0x74F0/0x74F1 |
+| 78 | GAIN BOOST |
 
 ---
 
 # 2. Hardware-confirmed commands
-
-## Transport
 
 ```text
 B9 57 03  RECORD
@@ -116,16 +95,12 @@ BB 57 03  STOP
 BC 57 03  REW
 BD 57 03  FAST FORWARD
 BE 57 03  OVERDUB
+
+B8 57 05  recording active feedback
+B8 57 00  recording stopped/inactive feedback
 ```
 
-Recorder feedback:
-
-```text
-B8 57 05  REC active
-B8 57 00  REC inactive/stopped
-```
-
-## Scenes
+Scenes:
 
 ```text
 B9 56 03  SAVE
@@ -144,9 +119,7 @@ B3 57 03  Scene 9
 BC 59 03  Scene 10
 ```
 
-## Fader law measured on hardware
-
-Controlled test: tone on CH11/12, reading on master.
+Measured fader law:
 
 | MIDI | dB |
 |---:|---:|
@@ -166,13 +139,13 @@ Controlled test: tone on CH11/12, reading on master.
 | 17 | -36.7 |
 | 11 | -49.2 |
 
-This is the fader control law, not the meter scale.
+This is the fader law, not the meter scale.
 
 ---
 
-# 3. Common SysEx framing
+# 3. SysEx framing
 
-Recovered common framing:
+Common framing:
 
 ```text
 F0 52 00 00 ... F7
@@ -180,62 +153,80 @@ F0 52 00 00 ... F7
 
 Known command families:
 
-| Bytes after `52 00 00` | Meaning |
-|---|---|
-| 01 | Parameters |
-| 02 | Parameters In |
-| 03 | Parameters14 |
-| 06 | Identity |
-| 07 | Patch Info |
-| 08 | Patch Data Dump |
-| 2B | Global Setting Dump |
-| 31 xx | realtime/event family |
-| 32 | Patch Action |
-| 4C | Fader Mode Change |
-| 50 | Enter PC Mode |
-| 51 | Terminate PC Mode |
+```text
+01      Parameters
+02      Parameters In
+03      Parameters14
+06      Identity
+07      Patch Info
+08      Patch Data Dump
+2B      Global Setting Dump
+31 xx   realtime/event family
+32      Patch Action
+4C      Fader Mode Change
+50      Enter PC Mode
+51      Terminate PC Mode
+```
 
 ---
 
-# 4. Parameters: 01 / 02 / 03
+# 4. Session / identity
 
-The app uses a 0x48-byte message descriptor whose byte pattern can contain `FF` wildcards.
+## Enter PC Mode
 
-The generic descriptor is:
-
-```text
-FF FF FF
-```
-
-meaning one arbitrary 3-byte MIDI message.
-
-## 01 – Parameters
-
-One MIDI CC triple:
+No payload:
 
 ```text
-F0 52 00 00 01
-   Bn CC VV
-F7
+F0 52 00 00 50 F7
 ```
 
-Evidence: app-derived-strong.
+## Terminate PC Mode
 
-## 02 – Parameters In
-
-Incoming triple:
+No payload:
 
 ```text
-F0 52 00 00 02
-   Bn CC VV
-F7
+F0 52 00 00 51 F7
 ```
 
-The handler converts status `B0..BF` to MIDI channel 0..15 and reinjects the record into the normal `recvCC` dispatcher.
+## Identity – 06
 
-## 03 – Parameters14
+Request has no payload:
 
-Two complete MIDI CC triples:
+```text
+F0 52 00 00 06 F7
+```
+
+The app response parser reads exactly four bytes and logs them as:
+
+```text
+Firmware version: %s
+```
+
+Logical response:
+
+```text
+F0 52 00 00 06 [4-byte firmware version] F7
+```
+
+---
+
+# 5. Parameters 01 / 02 / 03
+
+## 01 Parameters
+
+```text
+F0 52 00 00 01 Bn CC VV F7
+```
+
+## 02 Parameters In
+
+```text
+F0 52 00 00 02 Bn CC VV F7
+```
+
+The incoming triple is reinjected into the normal recvCC dispatcher.
+
+## 03 Parameters14
 
 ```text
 F0 52 00 00 03
@@ -244,31 +235,20 @@ F0 52 00 00 03
 F7
 ```
 
-The app reconstructs:
-
 ```text
 value14 = (MSB << 7) | LSB
 ```
 
-Confirmed examples:
+Known pairs:
 
 ```text
-EFX TONE/TIME
-B4 4E MSB
-B5 4E LSB
-
-EFX DECAY/FEEDBACK
-BC 4E MSB
-BD 4E LSB
+EFX TONE/TIME       B4 4E MSB + B5 4E LSB
+EFX DECAY/FEEDBACK  BC 4E MSB + BD 4E LSB
 ```
-
-This is a paired-CC 14-bit value, not NRPN.
 
 ---
 
-# 5. Realtime/event family 31
-
-Recovered command descriptions:
+# 6. Realtime family 31
 
 ```text
 31 00  Project Name Changed
@@ -284,11 +264,9 @@ Recovered command descriptions:
 31 5A  Display Locate Time
 ```
 
-The distinction `Change` vs `Changed` is intentional: request/update and resulting notification are separate protocol commands.
-
 ---
 
-# 6. Native meter protocol
+# 7. Native meters – 31 04
 
 Exact frame:
 
@@ -296,31 +274,27 @@ Exact frame:
 F0 52 00 00 31 04 [31-byte payload] F7
 ```
 
-Total length: 38 bytes.
+Total frame length: 38 bytes.
 
-The internal ID `0x0314` is not the literal wire sequence `03 14`; the actual command bytes are `31 04`.
-
-## Payload
-
-| Index | Meaning |
-|---:|---|
-| 0 | fader/meter mode |
-| 1..12 | nibble-packed signal + companion bank |
-| 13..14 | EFX/aux pair |
-| 15..26 | principal 12-channel meter bank |
-| 27..28 | EFX L/R |
-| 29..30 | MASTER L/R |
-
-Decoder operations:
+Payload:
 
 ```text
-value & 0x0F
-value >> 4
+[0]      fader/meter mode
+[1..12]  nibble-packed signal + companion bank
+[13..14] EFX/aux
+[15..26] principal 12-channel bank
+[27..28] EFX L/R
+[29..30] MASTER L/R
 ```
 
-Therefore wire meter magnitudes are 4-bit values, nominal range `0..15`.
+Decoder:
 
-Principal channel order:
+```text
+low  = byte & 0x0F
+high = byte >> 4
+```
+
+Principal order:
 
 ```text
 15 CH1
@@ -341,119 +315,216 @@ Principal channel order:
 30 MASTER R
 ```
 
-Higher-level meter families:
-
-```text
-track        12
-track EFX     2
-signal       12
-bridge       12
-bridge EFX    2
-master        2
-```
-
-The exact `0..15 -> dBFS` threshold table remains unresolved. It must not be inferred from the fader law.
+The wire domain is 4-bit, `0..15`. The app renders an 8-segment LED meter, but the exact nibble-to-dBFS thresholds are not encoded in the UI renderer and remain a hardware-measurement item.
 
 ---
 
-# 7. Patch Info – 07
+# 8. Fader Mode Change – 4C
 
-Wire matcher:
-
-```text
-F0 52 00 00 07 LL ... F7
-```
-
-`LL` identifies a library. The app accepts at least library 0 and 1.
-
-Decoded records contain:
+Exact wire format:
 
 ```text
-uint16/MIDI-safe patch index
-uint8 flag
-char[17] patch name
+F0 52 00 00 4C MODE F7
 ```
 
-The response carries a record count followed by patch metadata records.
+Swift `FaderMode` discriminator order:
+
+```text
+0 master
+1 monitorA
+2 monitorB
+3 monitorC
+4 monitorD
+5 monitorE
+6 monitorF
+```
 
 ---
 
-# 8. Patch Action – 32
+# 9. Patch Info – 07
 
-Exact logical format:
+Requests:
+
+```text
+F0 52 00 00 07 00 F7   scene library
+F0 52 00 00 07 01 F7   EFX1 library
+```
+
+`LibraryType`:
+
+```text
+0 scene
+1 efx1
+```
+
+Response body:
+
+```text
+COUNT:uint14
+repeat COUNT times:
+    INDEX:uint14
+    FLAG:uint8
+    NAME:17 bytes
+```
+
+Each record therefore consumes 20 bytes.
+
+---
+
+# 10. Patch Action – 32
 
 ```text
 F0 52 00 00 32
-   LL
+   LIBRARY
    ACTION
    INDEX_LOW7
    INDEX_HIGH7
-   [optional name data]
+   [optional name]
 F7
 ```
-
-Index reconstruction:
 
 ```text
 index = low7 | (high7 << 7)
 ```
 
-Action mapping recovered from button handlers and serializer:
+Action mapping:
 
 ```text
-0 = SAVE
-2 = RENAME
-4 = DELETE
+0 SAVE
+1 SELECT
+2 RENAME
+4 DELETE
 ```
 
-SAVE and RENAME append a 17-byte name field, preceded by the MIDI-safe length:
+`SELECT` is now identified from Swift `LibraryActionType` metadata (`save, select, rename, delete`) and the serializer paths.
+
+SAVE/RENAME append:
 
 ```text
-11 00
-[name area, 17 bytes]
+11 00           length = 17
+[17-byte name]
 ```
-
-DELETE does not require the name block.
-
-An internal action value 1 exists in the serializer but its semantic meaning remains unresolved.
 
 ---
 
-# 9. Patch Data Dump – 08
+# 11. Patch Data Dump – 08
 
-Wire family:
+General frame family:
 
 ```text
-F0 52 00 00 08 LL ... F7
+F0 52 00 00 08 LIBRARY ... F7
 ```
 
-The common envelope begins with MIDI-safe 14-bit fields:
+The parser consumes this exact common envelope:
 
 ```text
-A        = low7 | high7<<7
-LEN      = low7 | high7<<7
-blob[LEN]
-C        = low7 | high7<<7
+A:uint14
+LEN:uint14
+BLOB:LEN bytes
+C:uint14
+DATA...
 ```
 
-The exact semantics of A, blob and C remain unresolved; LEN is proven to be the blob length.
+`LEN` is definitely the blob length. `A`, `BLOB`, and `C` are consumed but discarded by the app's patch-data handler; their wire structure is known, but the binary does not expose trustworthy semantic names. They are therefore intentionally documented as opaque metadata.
 
-## Library 0
+## Library 0 – scene
 
-Library 0 is the full mixer-scene/state patch family.
+The persistent scene payload is exactly **310 bytes**.
 
-Known internal state layout includes:
+Important: CHANNEL SELECT and SOLO exist in shared runtime state but are **not included** in the scene dump.
+
+Persistent scene layout:
 
 ```text
-0x73B3-0x73B4  USB input select, stereo strips
-0x73B5-0x740E  channel names, 10 × 9 bytes
-0x740F-0x7418  channel colors, 10 bytes
+2    USB input select
+90   channel names (10 × 9)
+10   channel colors
+10   gain boost
+10   gain
+10   compressor
+10   mute
+10   phase
+10   pan
+10   EQ high
+10   EQ mid frequency
+10   EQ mid Q
+10   EQ mid gain
+10   EQ low
+10   low cut
+10   send EFX
+60   fader + send A/B/C/D/E
+1    EFX type
+4    EFX parameter 1 + parameter 2, two 14-bit pairs stored as 7+7
+2    EFX auxiliary 14-bit pair (0x74F0/0x74F1)
+1    EFX mute
+1    EFX solo
+6    EFX return fader + A/B/C/D/E
+3    master mute + master comp + master fader
+-------------------------------------------
+310 bytes
+```
+
+## Library 1 – efx1
+
+```text
+EFX type:uint8
+EFX parameter 1:uint14
+EFX parameter 2:uint14
+```
+
+---
+
+# 12. Global Setting Dump – 2B
+
+Request:
+
+```text
+F0 52 00 00 2B F7
+```
+
+Response/parser format:
+
+```text
+F0 52 00 00 2B
+   2D 03          # uint14 length = 429
+   [429 bytes]
+F7
+```
+
+```text
+429 decimal = 0x1AD
+uint14 = low7 | (high7 << 7)
+=> 0x2D 0x03
+```
+
+The 429-byte snapshot maps to runtime state:
+
+```text
+0x73B3 ... 0x755F
+```
+
+Listener variant:
+
+```text
+2B 0A
+```
+
+It applies the same global snapshot while preserving Monitor A-E.
+
+---
+
+# 13. Shared runtime state map
+
+```text
+0x73B3-0x73B4  USB input select
+0x73B5-0x740E  channel names (10×9)
+0x740F-0x7418  channel colors
 0x7419-0x7422  gain boost
 0x7423-0x742C  gain
 0x742D-0x7436  compressor
-0x7437-0x7440  channel select
+0x7437-0x7440  channel select       [runtime only]
 0x7441-0x744A  mute
-0x744B-0x7454  solo
+0x744B-0x7454  solo                 [runtime only]
 0x7455-0x745E  phase
 0x745F-0x7468  pan
 0x7469-0x7472  EQ high
@@ -463,218 +534,130 @@ Known internal state layout includes:
 0x7491-0x749A  EQ low
 0x749B-0x74A4  low cut
 0x74A5-0x74AE  send EFX
-
 0x74AF-0x74B8  fader
 0x74B9-0x74C2  send A
 0x74C3-0x74CC  send B
 0x74CD-0x74D6  send C
 0x74D7-0x74E0  send D
 0x74E1-0x74EA  send E
-
 0x74EB          EFX type
-0x74EC-0x74ED   EFX 14-bit parameter 1
-0x74EE-0x74EF   EFX 14-bit parameter 2
-0x74F0-0x74F1   EFX 14-bit parameter 3 / app-private EFX field
+0x74EC-0x74ED   EFX parameter 1 (14-bit)
+0x74EE-0x74EF   EFX parameter 2 (14-bit)
+0x74F0-0x74F1   EFX auxiliary field (14-bit; semantic label opaque)
 0x74F2          EFX mute
 0x74F3          EFX solo
 0x74F4          EFX return fader
-0x74F5          EFX return A
-0x74F6          EFX return B
-0x74F7          EFX return C
-0x74F8          EFX return D
-0x74F9          EFX return E
-
+0x74F5-0x74F9   EFX return A-E
 0x74FA          master mute
 0x74FB          master comp
 0x74FC          master fader
+0x74FD-0x7501   Monitor A-E
+0x7502          MASTER EQ GLOBAL ON
+0x7503-0x752A   MASTER EQ: 8 targets × 5 fields
+0x752B-0x7534   SceneState[10]
+0x7535          Scene Reset state/control
+0x7536          Scene Save state/control
+0x7537          Scene Recall state/control
+0x7538          Scene Delete state/control
+0x7539-0x755F   Project/Recorder state (39 bytes)
 ```
 
-Channel SELECT and SOLO are operational state and should not automatically be assumed to be persistent scene content just because they exist in the shared state memory.
-
-## Library 1
-
-Library 1 is the compact EFX patch family:
+Master EQ per target:
 
 ```text
-EFX type
-EFX parameter 1, 14-bit
-EFX parameter 2, 14-bit
++0 ON
++1 TYPE
++2 FREQ
++3 Q
++4 GAIN
 ```
 
 ---
 
-# 10. Global Setting Dump – 2B
+# 14. Scene state
 
-The parser accepts exactly:
-
-```text
-0x1AD = 429 bytes
-```
-
-and copies them directly into internal state:
-
-```text
-0x73B3 ... 0x755F
-```
-
-Thus the global dump is an extensive full-state snapshot.
-
-Related command:
-
-```text
-2B 0A  Global Setting Dump Listener
-```
-
-The listener preserves Monitor A-E while applying the rest of the snapshot.
-
-## Tail of the 429-byte state block
-
-```text
-0x74FD  Monitor A
-0x74FE  Monitor B
-0x74FF  Monitor C
-0x7500  Monitor D
-0x7501  Monitor E
-
-0x7502  MASTER EQ GLOBAL ON
-
-0x7503-0x752A  MASTER EQ, 8 targets × 5 fields
-                  +0 ON
-                  +1 TYPE
-                  +2 FREQ
-                  +3 Q
-                  +4 GAIN
-
-0x752B-0x7534  SceneState[10]
-
-0x7535  SCENE RESET state/control
-0x7536  SCENE SAVE state/control
-0x7537  SCENE RECALL state/control
-0x7538  SCENE DELETE state/control
-
-0x7539-0x755F  Project / Recorder State
-```
-
-This closes the previously anonymous 5 bytes in the global tail.
-
----
-
-# 11. Scene-state enum
-
-Swift metadata exposes:
+Swift UI enum:
 
 ```text
 SceneDetailTableViewCellState
-  off
-  on
-  blink
+0 off
+1 on
+2 blink
 ```
 
-Layout/discriminator order:
+The protocol/runtime state also uses value 3, handled outside the 3-case UI enum as a special/unavailable/empty-like state.
 
-```text
-0 = off
-1 = on
-2 = blink
-```
-
-The GUI explicitly routes state 2 through the scene-cell blinker.
-
-The protocol/state array also contains value 3. It is handled outside the normal 3-case UI enum and behaves like an unavailable/empty/special slot state.
-
-Therefore:
-
-```text
-0 = OFF
-1 = ON
-2 = BLINK
-3 = SPECIAL / EMPTY-LIKE   (probable semantic label)
-```
-
-`selected` is a separate cell property and is not one of these enum cases.
+`selected` is a separate UI property.
 
 ---
 
-# 12. Project / recorder state
+# 15. Project / recorder state
 
-Snapshot base:
+Base:
 
 ```text
 0x7539
-size 39 bytes
+size = 39 bytes
 ```
 
-Recovered fields:
-
-| Offset | Field |
-|---:|---|
-| +0 | recorderStatus |
-| +1 | overdub |
-| +2 | markStatus |
-| +3 | markNumber |
-| +17 | samplingRate |
-| +18 | bitDepth |
-| +19 | sdCardIcon |
-| +20 | metronomeIcon |
-| +21 | playmode |
-| +22 | projectProtect |
-| +37 | previousExists |
-| +38 | nextExists |
-
-Reflection strings expose recorder states:
+Known fields:
 
 ```text
-stop
-play
-pause
-recStandBy
-recPause
-recPlay
++0  recorderStatus
++1  overdub
++2  markStatus
++3  markNumber
++17 samplingRate
++18 bitDepth
++19 sdCardIcon
++20 metronomeIcon
++21 playmode
++22 projectProtect
++37 previousExists
++38 nextExists
 ```
 
-Mark states:
+Swift enum discriminator order recovered from reflection metadata:
+
+RecorderStatus:
 
 ```text
-atMark
-notAtMark
+0 stop
+1 play
+2 pause
+3 recStandBy
+4 recPause
+5 recPlay
 ```
 
-Play modes:
+MarkStatus:
 
 ```text
-playOne
-playAll
-repeatOne
-repeatAll
+0 hide
+1 atMark
+2 notAtMark
 ```
 
-Exact numeric raw values for every recorder/project enum case are not yet fully proven, so names are documented without inventing a raw-value map.
+PlayMode:
+
+```text
+0 off
+1 playOne
+2 playAll
+3 repeatOne
+4 repeatAll
+```
 
 ---
 
-# 13. Other recovered SysEx commands
+# 16. What is still hardware-only
 
-```text
-06     Identity
-4C     Fader Mode Change
-50     Enter PC Mode
-51     Terminate PC Mode
-```
-
-Their existence and command IDs are app-derived. Payload semantics are not yet all decoded.
-
----
-
-# 14. Remaining unresolved pieces
-
-The control protocol is now largely reconstructed. Remaining uncertainty is limited to:
+Static reverse engineering is now complete. The remaining items are not missing parser mechanics; they require observation of the physical mixer or firmware-level analysis:
 
 1. exact meter nibble `0..15 -> dBFS` thresholds;
-2. exact semantic name of the third EFX 14-bit field at `0x74F0-0x74F1`;
-3. exact meaning of Patch Data Dump envelope fields `A`, variable blob, and `C`;
-4. semantic meaning of internal Patch Action code 1;
-5. exact numeric raw-value maps for all recorder/project enums;
-6. exact payload semantics for Identity and Fader Mode Change;
-7. hardware capture validation of at least one complete `31 04` meter frame and one `2B` global dump.
+2. hardware confirmation of one complete `31 04` meter frame;
+3. hardware confirmation of a complete `2B` global dump;
+4. human-readable semantic label for the app-private 14-bit field at `0x74F0/0x74F1`;
+5. human-readable labels for opaque Patch Data Dump envelope metadata `A/BLOB/C`.
 
-Everything else above is either hardware-confirmed, manual-confirmed, or statically recovered from the official application with explicit confidence labels.
+The wire/storage format of items 4 and 5 is already known; only their semantic names remain opaque in this app build.
