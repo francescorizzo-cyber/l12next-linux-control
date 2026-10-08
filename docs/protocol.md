@@ -405,3 +405,14 @@ CH11/12 L/R         = 2 bytes
 ```
 
 Each meter lane is stored as an unsigned raw byte. See `docs/meters.md` for the control-flow derivation.
+
+
+### Meter value encoding
+
+The meter byte is a discrete 8-step LED value. The app normalizes it as:
+
+```text
+level = raw / 8.0
+```
+
+and `LEDAudioMeter` converts it back to an integer 0..8 to render the LED stack. Exact dB thresholds are not computed by the app and therefore appear to be mixer-side quantization.
