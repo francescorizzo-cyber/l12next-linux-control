@@ -101,12 +101,13 @@ The decrypted table sometimes contains two target IDs for effect-related entries
 
 | Function ID | CC / MIDI channel | Parameter |
 |---:|---|---|
-| 33 | 84 / ch10 | MASTER MUTE |
-| 34 | 84 / ch11 | MASTER FADER |
-| 35 | 84 / ch12 | MASTER COMP |
+| 33 | 84 / ch9 | unknown app-only/master-related entry |
+| 34 | 84 / ch10 | MASTER MUTE |
+| 35 | 84 / ch11 | MASTER FADER |
+| 36 | 84 / ch12 | MASTER COMP |
 | 37 | 85 / ch16 | MASTER EQ ON |
 
-Function ID 36 is present at CC84/ch13 but is not named in the public MIDI table. The app UI contains a master clear-solo control, but this association is not yet promoted to confirmed.
+The extra B8/CC84 entry (function 33) is not documented in the public MIDI table, so it remains intentionally unnamed.
 
 ## Scene and transport
 
@@ -223,7 +224,7 @@ The table contains **1464 non-zero entries**, **93 distinct CC values**, and fun
 The following IDs are still deliberately unnamed rather than guessed:
 
 ```text
-0, 36, 38, 43, 44, 45, 53, 54, 55, 56, 57,
+0, 33, 38, 43, 44, 45, 53, 54, 55, 56, 57,
 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68,
 69, 77
 ```
@@ -254,3 +255,19 @@ AutoFonic commands ---------------------+
 ```
 
 The goal is full bidirectional synchronization rather than blind MIDI writes.
+
+
+## Encrypted vs decrypted application comparison
+
+The original App Store bundle and the decrypted IPA were compared byte-for-byte.
+
+- main Mach-O size: **879,936 bytes** in both copies;
+- total differing bytes: **4,078**;
+- one byte differs at file offset `0x0DE0`, corresponding to `cryptid 1 -> 0`;
+- the remaining differences are confined to the DRM page beginning at file offset `0x3C000`;
+- the original load command reports `cryptoff 0x3C000`, `cryptsize 0x1000`;
+- app resources outside the main executable are unchanged.
+
+This is strong evidence that the dump preserved the original application and only replaced the encrypted code page with the in-memory decrypted page.
+
+Static inspection of the decrypted `0x3C000-0x3CFFF` region shows Swift code handling application peer/data keys (including constructed `p2pDataKey` / `p2pStringKey`-style paths). The main MIDI `recvCC` table is elsewhere in the executable, so the command map is not an artifact of the decryption patch.
