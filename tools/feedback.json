@@ -80,6 +80,16 @@
     "50": "REW",
     "51": "FAST_FORWARD",
     "52": "OVERDUB_MODE",
+    "53": "MARK_STATUS",
+    "54": "MARK_NUMBER",
+    "58": "SAMPLING_RATE",
+    "59": "BIT_DEPTH",
+    "60": "SD_CARD_ICON",
+    "61": "METRONOME_ICON",
+    "62": "PLAY_MODE",
+    "63": "PROJECT_PROTECT",
+    "64": "PREVIOUS_PROJECT_EXISTS",
+    "65": "NEXT_PROJECT_EXISTS",
     "70": "SCENE_DELETE",
     "71": "GAIN",
     "72": "MASTER_EQ_ON_FIELD",
@@ -138,19 +148,9 @@
     43,
     44,
     45,
-    53,
-    54,
     55,
     56,
     57,
-    58,
-    59,
-    60,
-    61,
-    62,
-    63,
-    64,
-    65,
     66,
     67,
     68,
@@ -158,10 +158,10 @@
     77
   ],
   "next_targets": [
-    "Resolve undocumented recorder/scene/master state IDs 36,38,43-45,53-69,77.",
-    "Extract meter packet framing and channel ordering.",
-    "Identify whether EFX target_id distinguishes two internal effect engines.",
-    "Hardware-validate MUTE, SOLO, PAN, SEND A-E and monitor-volume feedback."
+    "Identify function 45 (processed app-private state at B7/CC87) and function 67 (B9/CC89 event-only).",
+    "Resolve function 77 at CC94 channels 9/10.",
+    "Trace app-private/transmit-only IDs 55-57 and 68.",
+    "Extract meter packet framing and value scale."
   ],
   "master_cc54_analysis": {
     "B8 54": {
@@ -184,5 +184,97 @@
       "name": "MASTER_COMP",
       "status": "manual_confirmed"
     }
+  },
+  "project_state_reverse": {
+    "snapshot_base_offset_hex": "0x7539",
+    "snapshot_size_bytes": 39,
+    "swift_fields": [
+      {
+        "offset": 0,
+        "field": "recorderStatus",
+        "function_id": 46
+      },
+      {
+        "offset": 1,
+        "field": "overdub",
+        "function_id": 52
+      },
+      {
+        "offset": 2,
+        "field": "markStatus",
+        "function_id": 53
+      },
+      {
+        "offset": 3,
+        "field": "markNumber",
+        "function_id": 54
+      },
+      {
+        "offset": 17,
+        "field": "samplingRate",
+        "function_id": 58
+      },
+      {
+        "offset": 18,
+        "field": "bitDepth",
+        "function_id": 59
+      },
+      {
+        "offset": 19,
+        "field": "sdCardIcon",
+        "function_id": 60
+      },
+      {
+        "offset": 20,
+        "field": "metronomeIcon",
+        "function_id": 61
+      },
+      {
+        "offset": 21,
+        "field": "playmode",
+        "function_id": 62
+      },
+      {
+        "offset": 22,
+        "field": "projectProtect",
+        "function_id": 63
+      },
+      {
+        "offset": 37,
+        "field": "previousExists",
+        "function_id": 64
+      },
+      {
+        "offset": 38,
+        "field": "nextExists",
+        "function_id": 65
+      }
+    ],
+    "evidence": "Static ARM64 analysis of the receive dispatcher and the Swift bridge that copies the 39-byte project-state snapshot."
+  },
+  "recv_dispatch": {
+    "entry_address": "0x10001893C",
+    "jump_table_address": "0x100074D24",
+    "function_id_range": "1..78",
+    "default_unhandled_address": "0x100018CD8",
+    "unhandled_function_ids": [
+      33,
+      38,
+      41,
+      43,
+      44,
+      47,
+      48,
+      49,
+      50,
+      51,
+      55,
+      56,
+      57,
+      66,
+      68,
+      69
+    ],
+    "notes": "These IDs have recvCC table entries but branch to the app's explicit 'received unhandled CC' path in this build. They are therefore not normal incoming state handlers here."
   }
 }
