@@ -348,6 +348,16 @@
       "renderer_evidence": "LEDAudioMeter multiplies the stored level by 8, converts to integer, and computes 8 - raw to crop the LED image",
       "interpretation": "The native meter is an 8-step LED meter, not a 0..255 continuous dB value. raw=0 is empty; raw=8 is full scale in the UI.",
       "db_thresholds": "not encoded in the app renderer; likely quantized by mixer/firmware before transmission"
+    },
+    "wire_encoding": {
+      "decoder_address": "0x1000190AC",
+      "encoding": "nibble-packed",
+      "operations": [
+        "value & 0x0F",
+        "value >> 4"
+      ],
+      "confidence": "app_derived_strong",
+      "notes": "MeterParams byte arrays are post-decoding. On-wire/SysEx payload packs meter magnitudes in 4-bit nibbles; exact SysEx command/header is still unresolved."
     }
   }
 }
