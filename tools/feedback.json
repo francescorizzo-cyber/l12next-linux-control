@@ -6,92 +6,183 @@
     "binary_encryption": "cryptid 0",
     "recv_cc_table_entries_nonzero": 1464,
     "distinct_cc_values_present": 93,
-    "function_id_range": [0,78],
+    "function_id_range": [
+      0,
+      78
+    ],
     "notes": "Incoming CC table recovered from the decrypted app. Official ZOOM MIDI documentation was used to assign names where available; unknown IDs remain unnamed."
   },
   "hardware_confirmed_feedback": [
-    {"name":"REC_STATE_ACTIVE","bytes":"B8 57 05","direction":"mixer_to_host","status":"confirmed","function_id":46,"meaning":"Recording active","autofonic_action":"AUTOREC ON"},
-    {"name":"REC_STATE_STOPPED","bytes":"B8 57 00","direction":"mixer_to_host","status":"confirmed","function_id":46,"meaning":"Recording inactive / stopped","autofonic_action":"AUTOREC OFF"}
+    {
+      "name": "REC_STATE_ACTIVE",
+      "bytes": "B8 57 05",
+      "direction": "mixer_to_host",
+      "status": "confirmed",
+      "function_id": 46,
+      "meaning": "Recording active",
+      "autofonic_action": "AUTOREC ON"
+    },
+    {
+      "name": "REC_STATE_STOPPED",
+      "bytes": "B8 57 00",
+      "direction": "mixer_to_host",
+      "status": "confirmed",
+      "function_id": 46,
+      "meaning": "Recording inactive / stopped",
+      "autofonic_action": "AUTOREC OFF"
+    }
   ],
   "incoming_parameter_map": {
-    "1":"COMP",
-    "2":"USB_INPUT_SELECT",
-    "3":"CHANNEL_SELECT_BUTTON",
-    "4":"PHASE",
-    "5":"PAN",
-    "6":"EQ_HIGH",
-    "7":"EQ_MID_FREQ",
-    "8":"EQ_MID_GAIN",
-    "9":"EQ_MID_Q",
-    "10":"EQ_LOW",
-    "11":"LOCUT",
-    "12":"MUTE",
-    "13":"SOLO",
-    "14":"SEND_EFX",
-    "15":"FADER",
-    "16":"SEND_A",
-    "17":"SEND_B",
-    "18":"SEND_C",
-    "19":"SEND_D",
-    "20":"SEND_E",
-    "21":"EFX_TYPE",
-    "22":"EFX_TONE_TIME",
-    "23":"EFX_DECAY_FEEDBACK",
-    "24":"EFX_MUTE",
-    "25":"EFX_SOLO",
-    "26":"EFX_RETURN_FADER",
-    "27":"EFX_RETURN_A",
-    "28":"EFX_RETURN_B",
-    "29":"EFX_RETURN_C",
-    "30":"EFX_RETURN_D",
-    "31":"EFX_RETURN_E",
-    "32":"MONITOR_VOLUME_A_E",
-    "33":"MASTER_MUTE",
-    "34":"MASTER_FADER",
-    "35":"MASTER_COMP",
-    "37":"MASTER_EQ_ON",
-    "39":"SCENE_SAVE",
-    "40":"SCENE_RECALL",
-    "41":"SCENE_SELECT",
-    "42":"SCENE_RESET",
-    "46":"RECORD_STATE",
-    "47":"RECORD_BUTTON",
-    "48":"PLAY",
-    "49":"STOP",
-    "50":"REW",
-    "51":"FAST_FORWARD",
-    "52":"OVERDUB_MODE",
-    "70":"SCENE_DELETE",
-    "71":"GAIN",
-    "72":"MASTER_EQ_ON_FIELD",
-    "73":"MASTER_EQ_TYPE_FIELD",
-    "74":"MASTER_EQ_FREQ_FIELD",
-    "75":"MASTER_EQ_Q_FIELD",
-    "76":"MASTER_EQ_GAIN_FIELD",
-    "78":"GAIN_BOOST"
+    "1": "COMP",
+    "2": "USB_INPUT_SELECT",
+    "3": "CHANNEL_SELECT_BUTTON",
+    "4": "PHASE",
+    "5": "PAN",
+    "6": "EQ_HIGH",
+    "7": "EQ_MID_FREQ",
+    "8": "EQ_MID_GAIN",
+    "9": "EQ_MID_Q",
+    "10": "EQ_LOW",
+    "11": "LOCUT",
+    "12": "MUTE",
+    "13": "SOLO",
+    "14": "SEND_EFX",
+    "15": "FADER",
+    "16": "SEND_A",
+    "17": "SEND_B",
+    "18": "SEND_C",
+    "19": "SEND_D",
+    "20": "SEND_E",
+    "21": "EFX_TYPE",
+    "22": "EFX_TONE_TIME",
+    "23": "EFX_DECAY_FEEDBACK",
+    "24": "EFX_MUTE",
+    "25": "EFX_SOLO",
+    "26": "EFX_RETURN_FADER",
+    "27": "EFX_RETURN_A",
+    "28": "EFX_RETURN_B",
+    "29": "EFX_RETURN_C",
+    "30": "EFX_RETURN_D",
+    "31": "EFX_RETURN_E",
+    "32": "MONITOR_VOLUME_A_E",
+    "34": "MASTER_MUTE",
+    "35": "MASTER_FADER",
+    "36": "MASTER_COMP",
+    "37": "MASTER_EQ_ON",
+    "39": "SCENE_SAVE",
+    "40": "SCENE_RECALL",
+    "41": "SCENE_SELECT",
+    "42": "SCENE_RESET",
+    "46": "RECORD_STATE",
+    "47": "RECORD_BUTTON",
+    "48": "PLAY",
+    "49": "STOP",
+    "50": "REW",
+    "51": "FAST_FORWARD",
+    "52": "OVERDUB_MODE",
+    "70": "SCENE_DELETE",
+    "71": "GAIN",
+    "72": "MASTER_EQ_ON_FIELD",
+    "73": "MASTER_EQ_TYPE_FIELD",
+    "74": "MASTER_EQ_FREQ_FIELD",
+    "75": "MASTER_EQ_Q_FIELD",
+    "76": "MASTER_EQ_GAIN_FIELD",
+    "78": "GAIN_BOOST"
   },
   "important_correction": {
-    "old_wrong_mapping":"function_id 3 = PAN",
-    "correct_mapping":"function_id 3 = CHANNEL_SELECT_BUTTON; function_id 5 = PAN",
-    "basis":"Official ZOOM MIDI table plus recovered recvCC CC assignments."
+    "old_wrong_mapping": "function_id 3 = PAN",
+    "correct_mapping": "function_id 3 = CHANNEL_SELECT_BUTTON; function_id 5 = PAN",
+    "basis": "Official ZOOM MIDI table plus recovered recvCC CC assignments."
   },
   "app_feedback_capabilities": {
-    "event_strings":["TrackParamUpdated","ProjectParamUpdated","MasterParamUpdated","Scene Changed","Meters Changed"],
-    "parser_strings":["ERROR: invalid indexes for recvCC lookup table!","WARNING: received unhandled CC","Undefined sysEx MIDI message processing cmd","WARNING: discrepancy between meter msg and internal fader mode"],
-    "meter_strings":["track meter","track efx meter","bridge meter","bridge efx meter","master meter","signal meter"]
+    "event_strings": [
+      "TrackParamUpdated",
+      "ProjectParamUpdated",
+      "MasterParamUpdated",
+      "Scene Changed",
+      "Meters Changed"
+    ],
+    "parser_strings": [
+      "ERROR: invalid indexes for recvCC lookup table!",
+      "WARNING: received unhandled CC",
+      "Undefined sysEx MIDI message processing cmd",
+      "WARNING: discrepancy between meter msg and internal fader mode"
+    ],
+    "meter_strings": [
+      "track meter",
+      "track efx meter",
+      "bridge meter",
+      "bridge efx meter",
+      "master meter",
+      "signal meter"
+    ]
   },
   "recv_cc_table": {
-    "base_file_offset_hex":"0x7AEA4",
-    "entry_size_bytes":12,
-    "dimensions":{"cc":128,"midi_channels":16},
-    "index_formula":"base + cc*0xC0 + midi_channel_zero_based*0x0C",
-    "entry_layout":["target_id:uint32_le","function_id:uint32_le","aux:uint32_le"]
+    "base_file_offset_hex": "0x7AEA4",
+    "entry_size_bytes": 12,
+    "dimensions": {
+      "cc": 128,
+      "midi_channels": 16
+    },
+    "index_formula": "base + cc*0xC0 + midi_channel_zero_based*0x0C",
+    "entry_layout": [
+      "target_id:uint32_le",
+      "function_id:uint32_le",
+      "aux:uint32_le"
+    ]
   },
-  "unresolved_function_ids":[0,36,38,43,44,45,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,77],
-  "next_targets":[
+  "unresolved_function_ids": [
+    0,
+    33,
+    38,
+    43,
+    44,
+    45,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    77
+  ],
+  "next_targets": [
     "Resolve undocumented recorder/scene/master state IDs 36,38,43-45,53-69,77.",
     "Extract meter packet framing and channel ordering.",
     "Identify whether EFX target_id distinguishes two internal effect engines.",
     "Hardware-validate MUTE, SOLO, PAN, SEND A-E and monitor-volume feedback."
-  ]
+  ],
+  "master_cc54_analysis": {
+    "B8 54": {
+      "function_id": 33,
+      "status": "app_derived_unknown",
+      "notes": "Undocumented/app-only entry; likely master-related state/control but semantic name not yet proven."
+    },
+    "B9 54": {
+      "function_id": 34,
+      "name": "MASTER_MUTE",
+      "status": "manual_confirmed"
+    },
+    "BA 54": {
+      "function_id": 35,
+      "name": "MASTER_FADER",
+      "status": "manual_confirmed"
+    },
+    "BB 54": {
+      "function_id": 36,
+      "name": "MASTER_COMP",
+      "status": "manual_confirmed"
+    }
+  }
 }
