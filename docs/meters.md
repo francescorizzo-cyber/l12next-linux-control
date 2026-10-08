@@ -178,3 +178,49 @@ To recover exact dB thresholds we need either:
 2. a controlled signal-level test correlating known dBFS input with raw meter values 0..8.
 
 This is separate from the fader law, which is a different nonlinear MIDI-value-to-dB mapping.
+
+
+## Raw meter payload is nibble-packed
+
+A lower-level C++ meter decoder at approximately `0x1000190AC` reveals how the meter payload is unpacked before it reaches the Swift/UI `MeterParams` bridge.
+
+The decoder repeatedly reads payload bytes and uses:
+
+```text
+AND value, 0x0F
+LSR value, 4
+```
+
+to split a byte into low and high nibbles.
+
+This is strong static evidence that the actual mixer meter transport is **4-bit/nibble encoded**, consistent with the UI's final 0..8 LED domain. The Swift side stores meter values in bytes, but the useful meter magnitude itself occupies only a nibble.
+
+The parser also processes blocks of 12 entries and 2-entry stereo groups, matching the already recovered channel layout.
+
+### Important distinction
+
+There are therefore three layers:
+
+```text
+wire/SysEx payload
+    -> nibble unpacking in C++
+    -> byte arrays in MeterParams
+    -> normalized raw/8.0 in Swift
+    -> 8-step LED renderer
+```
+
+So the 12-byte `track` group documented above is the **post-decoding MeterParams representation**, not necessarily 12 literal meter bytes on the wire.
+
+### Current static evidence
+
+The decoder contains:
+
+- a 12-iteration loop that splits each source byte into high/low nibbles;
+- another 12-entry meter-processing loop;
+- 2-entry handling for stereo groups;
+- explicit comparison with the internal fader/meter mode;
+- forwarding into the state buffers later exposed as track/bridge/master/signal meter groups.
+
+This makes it likely that the wire format packs multiple 4-bit meter values into each byte to reduce bandwidth.
+
+The exact SysEx header/command byte and complete payload-length formula are still being traced.
