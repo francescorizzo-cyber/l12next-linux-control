@@ -381,3 +381,27 @@ In this app build the following function IDs branch directly to the explicit unh
 ```
 
 This explains why some control mappings are valid for transmission while not acting as state feedback handlers in the same code path.
+
+
+## Native meter structure
+
+Static analysis of the decrypted meter handler at `0x100038368` resolves the raw group sizes:
+
+```text
+track       12 bytes
+track EFX    2 bytes
+signal      12 bytes
+bridge      12 bytes
+bridge EFX   2 bytes
+master       2 bytes
+```
+
+The 12-byte track/bridge groups map to:
+
+```text
+CH1..CH8            = 8 mono bytes
+CH9/10 L/R          = 2 bytes
+CH11/12 L/R         = 2 bytes
+```
+
+Each meter lane is stored as an unsigned raw byte. See `docs/meters.md` for the control-flow derivation.
