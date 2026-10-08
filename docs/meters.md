@@ -1,226 +1,211 @@
 # Native meter reverse engineering
 
-## Meter handler
+## Resolved SysEx frame
 
-The decrypted app processes meter updates in the routine at approximately:
-
-```text
-0x100038368
-```
-
-The function receives a `MeterParams`-style structure made from pointer/length pairs.
-
-## MeterParams layout
-
-| Struct offset | Group | Required size |
-|---:|---|---:|
-| 0x00 | track | 12 bytes |
-| 0x10 | track EFX | 2 bytes |
-| 0x20 | signal | 12 bytes |
-| 0x30 | bridge | 12 bytes |
-| 0x40 | bridge EFX | 2 bytes |
-| 0x50 | master | 2 bytes |
-| 0x60 | auxiliary group 6 | dynamic |
-| 0x70 | auxiliary group 7 | dynamic |
-
-The app has explicit size checks with these diagnostics:
+The official decrypted L12next Control app identifies meter updates with:
 
 ```text
-WARNING: Incorrect track meter values size!
-WARNING: Incorrect track efx meter values size!
-WARNING: Incorrect bridge meter values size!
-WARNING: Incorrect bridge efx meter values size!
-WARNING: Incorrect master meter values size!
-WARNING: Incorrect signal meter values size!
+52 00 00 31 04
 ```
 
-## Track channel packing
-
-The 12 track-meter bytes are not 12 separate UI strips. The ARM64 loop maps them into 10 channel strips:
+The complete MIDI SysEx frame is:
 
 ```text
-raw[0]  -> CH1
-raw[1]  -> CH2
-raw[2]  -> CH3
-raw[3]  -> CH4
-raw[4]  -> CH5
-raw[5]  -> CH6
-raw[6]  -> CH7
-raw[7]  -> CH8
-raw[8]  -> CH9/10 L
-raw[9]  -> CH9/10 R
-raw[10] -> CH11/12 L
-raw[11] -> CH11/12 R
+F0 52 00 00 31 04 [31-byte payload] F7
 ```
 
-The code does this explicitly:
-
-- for indices 0..7: strip index = raw index, side = 0;
-- for indices 8..11: strip index = 8 + ((raw_index - 8) >> 1), side = raw_index & 1.
-
-This strongly matches the L12next physical layout: eight mono strips plus two stereo strips.
-
-The bridge 12-byte group uses the same packing.
-
-## EFX and master
+Breakdown:
 
 ```text
-track EFX  : 2 bytes -> stereo EFX return L/R
-bridge EFX : 2 bytes -> stereo bridge EFX L/R
-master     : 2 bytes -> master L/R
+F0       SysEx start
+52       ZOOM manufacturer ID
+00 00    L12next prefix
+31       main command family
+04       meter subcommand
+31 bytes payload
+F7       SysEx end
 ```
 
-## Signal group
+Total frame size: **38 bytes**.
 
-The signal meter group is also exactly 12 bytes and follows the same physical 12-channel packing.
+The internal app identifier associated with this path is `0x0314`, but that is not the literal wire sequence. The actual command bytes are `31 04`.
 
-The app contains the fields:
+Evidence level: **app-derived-strong**.
+
+---
+
+## Payload layout
+
+The 31-byte payload is consumed by the lower-level meter decoder.
+
+| Payload index | Meaning |
+|---:|---|
+| 0 | fader/meter mode |
+| 1..12 | 12 nibble-packed values; high nibble = signal/input-side data, low nibble = companion meter-bank data |
+| 13..14 | two EFX/aux values |
+| 15..26 | 12 principal track/bridge meter values |
+| 27..28 | EFX L/R |
+| 29..30 | MASTER L/R |
+
+The decoder repeatedly performs:
 
 ```text
-inputLevelMetersPre
-efxReturnLevelMetersPre
+value & 0x0F
+value >> 4
 ```
 
-and also checks:
+Therefore the on-wire magnitude is **4-bit**, with raw domain `0..15`.
+
+The first payload byte is not audio. It is compared against the internal fader/meter mode and can trigger:
 
 ```text
 WARNING: discrepancy between meter msg and internal fader mode
 ```
 
-This suggests the app can switch between normal track/bridge meter data and pre/signal meter data depending on internal fader/meter mode.
+---
 
-## Value representation
+## Channel order
 
-The handler loads each meter entry with `ldrb` and stores the raw byte as an integer in the app meter arrays.
-
-Therefore each meter lane is an unsigned **8-bit raw meter value**.
-
-What is not yet proven:
-
-- exact raw-value to dBFS conversion;
-- clip/peak thresholds;
-- whether the raw scale is linear in dB, segmented, or LED-index based.
-
-Those conversions happen later in the UI/meter rendering path rather than in this packet handler.
-
-## Why this is useful for AutoFonic
-
-Once the raw packet framing is identified on the Linux side, a native meter backend can expose:
+The 12-channel groups are ordered as:
 
 ```text
-CH1..CH8
-CH9/10 L/R
-CH11/12 L/R
-EFX L/R
-MASTER L/R
+0  CH1
+1  CH2
+2  CH3
+3  CH4
+4  CH5
+5  CH6
+6  CH7
+7  CH8
+8  CH9/10 L
+9  CH9/10 R
+10 CH11/12 L
+11 CH11/12 R
 ```
 
-without capturing USB audio.
-
-The remaining work is:
-
-1. locate the incoming MIDI/SysEx frame that constructs `MeterParams`;
-2. derive the raw byte -> dB/LED conversion from `LEDAudioMeter`;
-3. validate one or two raw meter captures against known signal levels.
-
-
-## LED level encoding recovered
-
-The UI update path finally resolves the representation of each meter byte.
-
-Before assigning a meter value to `LEDAudioMeter`, the app performs:
+For the principal group:
 
 ```text
-SCVTF raw_integer -> Double
-FMUL  value, 0.125
+payload[15] CH1
+payload[16] CH2
+payload[17] CH3
+payload[18] CH4
+payload[19] CH5
+payload[20] CH6
+payload[21] CH7
+payload[22] CH8
+payload[23] CH9/10 L
+payload[24] CH9/10 R
+payload[25] CH11/12 L
+payload[26] CH11/12 R
+payload[27] EFX L
+payload[28] EFX R
+payload[29] MASTER L
+payload[30] MASTER R
 ```
 
-So:
+---
+
+## Internal MeterParams families
+
+The app exposes these decoded meter groups:
+
+| Group | Count |
+|---|---:|
+| track | 12 |
+| track EFX | 2 |
+| signal | 12 |
+| bridge | 12 |
+| bridge EFX | 2 |
+| master | 2 |
+
+The higher-level app state stores decoded values as bytes, but the SysEx wire format is nibble-packed.
+
+---
+
+## Rendering
+
+The app contains a dedicated `LEDAudioMeter` UI component and the concepts:
 
 ```text
-normalized_level = raw / 8.0
+lowerMeterHeight
+warnMeterHeight
+peakMeterHeight
+LedAudioMeter_ON
+LedAudioMeter_OFF
 ```
 
-Inside `LEDAudioMeter` at approximately `0x10005A738`, the renderer does the inverse:
+This proves a segmented LED-style presentation with lower/warning/peak regions.
+
+### Important correction
+
+Earlier notes that described the native wire meter as an **8-step** protocol should not be treated as final. Static analysis of the lower-level SysEx decoder shows that the transmitted meter magnitudes are 4-bit nibble values, i.e. `0..15`.
+
+The UI may remap or group those values visually, but that is a rendering detail and is separate from the wire representation.
+
+---
+
+## dB conversion
+
+The exact mapping:
 
 ```text
-level * 8
-FCVTZS -> integer LED level
-8 - LED level
+raw meter nibble 0..15 -> dBFS
 ```
 
-and uses that result to crop/position the ON/OFF meter images.
+is **not yet proven** by the app.
 
-Therefore the received meter byte is not a continuous 0..255 dB value. It is a discrete **8-step LED level**:
+Do not derive it from the fader law. The fader control law and the meter quantization law are two different functions.
 
-```text
-raw 0 -> 0/8 LEDs
-raw 1 -> 1/8 LEDs
-...
-raw 8 -> 8/8 LEDs
-```
+To recover exact meter dB thresholds, use either:
 
-Values outside the valid integer range would trip Swift overflow/trap paths in this renderer, which is further evidence that the intended domain is 0..8.
+1. mixer/firmware specification, or
+2. controlled tests correlating known input level with nibble transitions.
 
-### Consequence
+---
 
-For AutoFonic we can implement the native meter immediately as an 8-step meter without knowing a dB conversion:
+## Separate hardware-measured fader law
 
-```python
-normalized = raw / 8.0
-```
+A controlled test with tone on CH11/12 and reading on master produced:
 
-The exact dB threshold represented by each of the eight steps is **not converted in the app**. The app receives an already-quantized level and only renders the number of illuminated LEDs. Therefore the dB thresholds are probably decided by the mixer/firmware before the packet reaches the app.
+| MIDI fader value | Measured level |
+|---:|---:|
+| 87 | +0.0 dB |
+| 81 | -1.7 dB |
+| 75 | -3.3 dB |
+| 69 | -5.0 dB |
+| 63 | -6.7 dB |
+| 58 | -8.1 dB |
+| 53 | -9.4 dB |
+| 49 | -11.1 dB |
+| 45 | -13.2 dB |
+| 40 | -15.8 dB |
+| 35 | -18.4 dB |
+| 29 | -23.3 dB |
+| 23 | -30.0 dB |
+| 17 | -36.7 dB |
+| 11 | -49.2 dB |
 
-To recover exact dB thresholds we need either:
+This table is useful for fader control/reconstruction only. It is not the meter dB scale.
 
-1. a mixer-side specification/firmware mapping, or
-2. a controlled signal-level test correlating known dBFS input with raw meter values 0..8.
+---
 
-This is separate from the fader law, which is a different nonlinear MIDI-value-to-dB mapping.
+## Current confidence
 
+**Resolved:**
 
-## Raw meter payload is nibble-packed
+- common SysEx framing `F0 52 00 00 ... F7`;
+- meter command family `31`;
+- meter subcommand `04`;
+- payload length 31 bytes;
+- total frame length 38 bytes;
+- fader/meter mode at payload[0];
+- nibble packing;
+- CH1..CH12 channel order;
+- EFX and master locations.
 
-A lower-level C++ meter decoder at approximately `0x1000190AC` reveals how the meter payload is unpacked before it reaches the Swift/UI `MeterParams` bridge.
+**Still unresolved:**
 
-The decoder repeatedly reads payload bytes and uses:
-
-```text
-AND value, 0x0F
-LSR value, 4
-```
-
-to split a byte into low and high nibbles.
-
-This is strong static evidence that the actual mixer meter transport is **4-bit/nibble encoded**, consistent with the UI's final 0..8 LED domain. The Swift side stores meter values in bytes, but the useful meter magnitude itself occupies only a nibble.
-
-The parser also processes blocks of 12 entries and 2-entry stereo groups, matching the already recovered channel layout.
-
-### Important distinction
-
-There are therefore three layers:
-
-```text
-wire/SysEx payload
-    -> nibble unpacking in C++
-    -> byte arrays in MeterParams
-    -> normalized raw/8.0 in Swift
-    -> 8-step LED renderer
-```
-
-So the 12-byte `track` group documented above is the **post-decoding MeterParams representation**, not necessarily 12 literal meter bytes on the wire.
-
-### Current static evidence
-
-The decoder contains:
-
-- a 12-iteration loop that splits each source byte into high/low nibbles;
-- another 12-entry meter-processing loop;
-- 2-entry handling for stereo groups;
-- explicit comparison with the internal fader/meter mode;
-- forwarding into the state buffers later exposed as track/bridge/master/signal meter groups.
-
-This makes it likely that the wire format packs multiple 4-bit meter values into each byte to reduce bandwidth.
-
-The exact SysEx header/command byte and complete payload-length formula are still being traced.
+- exact meter raw-value-to-dBFS thresholds;
+- exact semantic naming of every companion/bridge bank under every fader mode;
+- hardware capture confirmation of one full `31 04` frame.
