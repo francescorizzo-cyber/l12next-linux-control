@@ -507,5 +507,83 @@
       "aux:uint32_le"
     ],
     "master_cc54_note": "recvCC has an undocumented/app-only entry at B8 54 (function 33) before the documented MASTER MUTE/FADER/COMP entries B9/BA/BB 54 (functions 34/35/36)."
+  },
+  "fader_measurement": {
+    "status": "hardware_confirmed",
+    "method": "tone on CH11/12, level read on master",
+    "points": [
+      {
+        "midi": 87,
+        "db": 0
+      },
+      {
+        "midi": 81,
+        "db": -1.7
+      },
+      {
+        "midi": 75,
+        "db": -3.3
+      },
+      {
+        "midi": 69,
+        "db": -5
+      },
+      {
+        "midi": 63,
+        "db": -6.7
+      },
+      {
+        "midi": 58,
+        "db": -8.1
+      },
+      {
+        "midi": 53,
+        "db": -9.4
+      },
+      {
+        "midi": 49,
+        "db": -11.1
+      },
+      {
+        "midi": 45,
+        "db": -13.2
+      },
+      {
+        "midi": 40,
+        "db": -15.8
+      },
+      {
+        "midi": 35,
+        "db": -18.4
+      },
+      {
+        "midi": 29,
+        "db": -23.3
+      },
+      {
+        "midi": 23,
+        "db": -30
+      },
+      {
+        "midi": 17,
+        "db": -36.7
+      },
+      {
+        "midi": 11,
+        "db": -49.2
+      }
+    ],
+    "note": "Measured fader law; not the SysEx meter 0..15 -> dBFS law."
+  },
+  "sysex_meter": {
+    "frame": "F0 52 00 00 31 04 [31-byte payload] F7",
+    "command_family_hex": "31",
+    "subcommand_hex": "04",
+    "payload_bytes": 31,
+    "total_frame_bytes": 38,
+    "wire_encoding": "4-bit nibble-packed meter magnitudes",
+    "raw_meter_range": "0..15",
+    "evidence": "app_derived_strong",
+    "note": "See docs/protocol.md, docs/meters.md and tools/protocol.json."
   }
 }
