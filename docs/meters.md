@@ -122,3 +122,59 @@ The remaining work is:
 1. locate the incoming MIDI/SysEx frame that constructs `MeterParams`;
 2. derive the raw byte -> dB/LED conversion from `LEDAudioMeter`;
 3. validate one or two raw meter captures against known signal levels.
+
+
+## LED level encoding recovered
+
+The UI update path finally resolves the representation of each meter byte.
+
+Before assigning a meter value to `LEDAudioMeter`, the app performs:
+
+```text
+SCVTF raw_integer -> Double
+FMUL  value, 0.125
+```
+
+So:
+
+```text
+normalized_level = raw / 8.0
+```
+
+Inside `LEDAudioMeter` at approximately `0x10005A738`, the renderer does the inverse:
+
+```text
+level * 8
+FCVTZS -> integer LED level
+8 - LED level
+```
+
+and uses that result to crop/position the ON/OFF meter images.
+
+Therefore the received meter byte is not a continuous 0..255 dB value. It is a discrete **8-step LED level**:
+
+```text
+raw 0 -> 0/8 LEDs
+raw 1 -> 1/8 LEDs
+...
+raw 8 -> 8/8 LEDs
+```
+
+Values outside the valid integer range would trip Swift overflow/trap paths in this renderer, which is further evidence that the intended domain is 0..8.
+
+### Consequence
+
+For AutoFonic we can implement the native meter immediately as an 8-step meter without knowing a dB conversion:
+
+```python
+normalized = raw / 8.0
+```
+
+The exact dB threshold represented by each of the eight steps is **not converted in the app**. The app receives an already-quantized level and only renders the number of illuminated LEDs. Therefore the dB thresholds are probably decided by the mixer/firmware before the packet reaches the app.
+
+To recover exact dB thresholds we need either:
+
+1. a mixer-side specification/firmware mapping, or
+2. a controlled signal-level test correlating known dBFS input with raw meter values 0..8.
+
+This is separate from the fader law, which is a different nonlinear MIDI-value-to-dB mapping.
