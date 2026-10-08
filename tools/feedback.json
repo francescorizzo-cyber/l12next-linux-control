@@ -276,5 +276,68 @@
       69
     ],
     "notes": "These IDs have recvCC table entries but branch to the app's explicit 'received unhandled CC' path in this build. They are therefore not normal incoming state handlers here."
+  },
+  "meters_reverse": {
+    "handler_address": "0x100038368",
+    "source": "static ARM64 analysis of decrypted L12next Control",
+    "meter_params_layout": [
+      {
+        "offset": "0x00",
+        "name": "track",
+        "size": 12
+      },
+      {
+        "offset": "0x10",
+        "name": "track_efx",
+        "size": 2
+      },
+      {
+        "offset": "0x20",
+        "name": "signal",
+        "size": 12
+      },
+      {
+        "offset": "0x30",
+        "name": "bridge",
+        "size": 12
+      },
+      {
+        "offset": "0x40",
+        "name": "bridge_efx",
+        "size": 2
+      },
+      {
+        "offset": "0x50",
+        "name": "master",
+        "size": 2
+      },
+      {
+        "offset": "0x60",
+        "name": "aux_group_6",
+        "size": "dynamic/forwarded"
+      },
+      {
+        "offset": "0x70",
+        "name": "aux_group_7",
+        "size": "dynamic/forwarded"
+      }
+    ],
+    "track_channel_mapping": {
+      "raw_0_to_7": "CH1..CH8 mono",
+      "raw_8_9": "CH9/10 stereo L/R",
+      "raw_10_11": "CH11/12 stereo L/R",
+      "derivation": "handler maps 12 raw bytes into 10 UI strips; first 8 use subindex 0, last four are paired as two stereo strips"
+    },
+    "bridge_mapping": "same 12-byte mono/stereo packing as track",
+    "track_efx_mapping": "2-byte stereo EFX return",
+    "bridge_efx_mapping": "2-byte stereo EFX bridge",
+    "master_mapping": "2-byte stereo master L/R",
+    "signal_mapping": "12-byte signal/pre-meter group; same 12-channel physical packing",
+    "notes": [
+      "Raw meter values are copied byte-for-byte into the app's meter state arrays.",
+      "The meter handler validates exact sizes and prints dedicated warnings for track, track EFX, bridge, bridge EFX, master and signal groups.",
+      "The app later routes some meter payloads through an internal data/p2p path at 0x100036800.",
+      "Raw byte to dB/LED scale is not yet proven statically."
+    ]
   }
 }
