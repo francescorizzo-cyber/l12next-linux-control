@@ -271,3 +271,113 @@ The original App Store bundle and the decrypted IPA were compared byte-for-byte.
 This is strong evidence that the dump preserved the original application and only replaced the encrypted code page with the in-memory decrypted page.
 
 Static inspection of the decrypted `0x3C000-0x3CFFF` region shows Swift code handling application peer/data keys (including constructed `p2pDataKey` / `p2pStringKey`-style paths). The main MIDI `recvCC` table is elsewhere in the executable, so the command map is not an artifact of the decryption patch.
+
+
+## recvCC dispatcher control-flow analysis
+
+The decrypted ARM64 receive routine starts at approximately `0x10001893C`.
+
+It validates:
+
+```text
+MIDI channel <= 15
+CC <= 127
+```
+
+and indexes the recovered table at `0x10007AEA4`.
+
+The internal function ID is then dispatched through a 16-bit jump table at:
+
+```text
+0x100074D24
+```
+
+covering function IDs 1–78.
+
+The build also has an explicit default handler at `0x100018CD8` which prints:
+
+```text
+WARNING: received unhandled CC (%d): 0x%02X, 0x%02X, 0x%02X
+```
+
+This is important because not every entry present in the lookup table is accepted as incoming state in this app build. Some mappings are command/transmit-side or reserved/app-private entries.
+
+### ProjectState mapping recovered from code
+
+A bridge routine copies a 39-byte C++ state snapshot starting at executable-object offset `0x7539`, then constructs the Swift `ProjectState`.
+
+The Swift reflection strings list:
+
+```text
+recorderStatus
+overdub
+markStatus
+markNumber
+samplingRate
+bitDepth
+sdCardIcon
+metronomeIcon
+playmode
+projectProtect
+previousExists
+nextExists
+```
+
+Static code gives the exact raw offsets and recv function IDs:
+
+| Raw offset | Swift field | Function ID | CC/status |
+|---:|---|---:|---|
+| 0 | recorderStatus | 46 | B8 57 |
+| 1 | overdub | 52 | BE 57 |
+| 2 | markStatus | 53 | BF 57 |
+| 3 | markNumber | 54 | B0 58 |
+| 17 | samplingRate | 58 | B0 59 |
+| 18 | bitDepth | 59 | B1 59 |
+| 19 | sdCardIcon | 60 | B2 59 |
+| 20 | metronomeIcon | 61 | B3 59 |
+| 21 | playmode | 62 | B4 59 |
+| 22 | projectProtect | 63 | B5 59 |
+| 37 | previousExists | 64 | B6 59 |
+| 38 | nextExists | 65 | B7 59 |
+
+This substantially resolves the recorder/project feedback block.
+
+The enum reflection strings also expose recorder states:
+
+```text
+stop
+play
+pause
+recStandBy
+recPause
+recPlay
+```
+
+and mark states:
+
+```text
+atMark
+notAtMark
+```
+
+plus play modes:
+
+```text
+playOne
+playAll
+repeatOne
+repeatAll
+```
+
+The numeric raw-value mapping of every enum case still needs one more static pass before being treated as final.
+
+### Entries that are deliberately unhandled on receive
+
+In this app build the following function IDs branch directly to the explicit unhandled-CC warning path:
+
+```text
+33, 38, 41, 43, 44, 47, 48, 49, 50, 51,
+55, 56, 57, 66, 68, 69
+```
+
+This explains why some control mappings are valid for transmission while not acting as state feedback handlers in the same code path.
