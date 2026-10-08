@@ -1,363 +1,85 @@
 {
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
-    "generated_from": "L12next Control_decrypted.ipa",
-    "app_bundle_id": "jp.co.zoom.l12nextcontrol",
-    "binary_encryption": "cryptid 0",
-    "recv_cc_table_entries_nonzero": 1464,
-    "distinct_cc_values_present": 93,
-    "function_id_range": [
-      0,
-      78
-    ],
-    "notes": "Incoming CC table recovered from the decrypted app. Official ZOOM MIDI documentation was used to assign names where available; unknown IDs remain unnamed."
+    "source": "decrypted official L12next Control app + hardware captures",
+    "static_reverse_status": "complete_to_app_visible_semantics"
   },
-  "hardware_confirmed_feedback": [
-    {
-      "name": "REC_STATE_ACTIVE",
-      "bytes": "B8 57 05",
-      "direction": "mixer_to_host",
-      "status": "confirmed",
-      "function_id": 46,
-      "meaning": "Recording active",
-      "autofonic_action": "AUTOREC ON"
-    },
-    {
-      "name": "REC_STATE_STOPPED",
-      "bytes": "B8 57 00",
-      "direction": "mixer_to_host",
-      "status": "confirmed",
-      "function_id": 46,
-      "meaning": "Recording inactive / stopped",
-      "autofonic_action": "AUTOREC OFF"
-    }
-  ],
-  "incoming_parameter_map": {
-    "1": "COMP",
-    "2": "USB_INPUT_SELECT",
-    "3": "CHANNEL_SELECT_BUTTON",
-    "4": "PHASE",
-    "5": "PAN",
-    "6": "EQ_HIGH",
-    "7": "EQ_MID_FREQ",
-    "8": "EQ_MID_GAIN",
-    "9": "EQ_MID_Q",
-    "10": "EQ_LOW",
-    "11": "LOCUT",
-    "12": "MUTE",
-    "13": "SOLO",
-    "14": "SEND_EFX",
-    "15": "FADER",
-    "16": "SEND_A",
-    "17": "SEND_B",
-    "18": "SEND_C",
-    "19": "SEND_D",
-    "20": "SEND_E",
-    "21": "EFX_TYPE",
-    "22": "EFX_TONE_TIME",
-    "23": "EFX_DECAY_FEEDBACK",
-    "24": "EFX_MUTE",
-    "25": "EFX_SOLO",
-    "26": "EFX_RETURN_FADER",
-    "27": "EFX_RETURN_A",
-    "28": "EFX_RETURN_B",
-    "29": "EFX_RETURN_C",
-    "30": "EFX_RETURN_D",
-    "31": "EFX_RETURN_E",
-    "32": "MONITOR_VOLUME_A_E",
-    "34": "MASTER_MUTE",
-    "35": "MASTER_FADER",
-    "36": "MASTER_COMP",
-    "37": "MASTER_EQ_ON",
-    "39": "SCENE_SAVE",
-    "40": "SCENE_RECALL",
-    "41": "SCENE_SELECT",
-    "42": "SCENE_RESET",
-    "46": "RECORD_STATE",
-    "47": "RECORD_BUTTON",
-    "48": "PLAY",
-    "49": "STOP",
-    "50": "REW",
-    "51": "FAST_FORWARD",
-    "52": "OVERDUB_MODE",
-    "53": "MARK_STATUS",
-    "54": "MARK_NUMBER",
-    "58": "SAMPLING_RATE",
-    "59": "BIT_DEPTH",
-    "60": "SD_CARD_ICON",
-    "61": "METRONOME_ICON",
-    "62": "PLAY_MODE",
-    "63": "PROJECT_PROTECT",
-    "64": "PREVIOUS_PROJECT_EXISTS",
-    "65": "NEXT_PROJECT_EXISTS",
-    "70": "SCENE_DELETE",
-    "71": "GAIN",
-    "72": "MASTER_EQ_ON_FIELD",
-    "73": "MASTER_EQ_TYPE_FIELD",
-    "74": "MASTER_EQ_FREQ_FIELD",
-    "75": "MASTER_EQ_Q_FIELD",
-    "76": "MASTER_EQ_GAIN_FIELD",
-    "78": "GAIN_BOOST"
-  },
-  "important_correction": {
-    "old_wrong_mapping": "function_id 3 = PAN",
-    "correct_mapping": "function_id 3 = CHANNEL_SELECT_BUTTON; function_id 5 = PAN",
-    "basis": "Official ZOOM MIDI table plus recovered recvCC CC assignments."
-  },
-  "app_feedback_capabilities": {
-    "event_strings": [
-      "TrackParamUpdated",
-      "ProjectParamUpdated",
-      "MasterParamUpdated",
-      "Scene Changed",
-      "Meters Changed"
-    ],
-    "parser_strings": [
-      "ERROR: invalid indexes for recvCC lookup table!",
-      "WARNING: received unhandled CC",
-      "Undefined sysEx MIDI message processing cmd",
-      "WARNING: discrepancy between meter msg and internal fader mode"
-    ],
-    "meter_strings": [
-      "track meter",
-      "track efx meter",
-      "bridge meter",
-      "bridge efx meter",
-      "master meter",
-      "signal meter"
-    ]
-  },
-  "recv_cc_table": {
+  "recv_cc": {
     "base_file_offset_hex": "0x7AEA4",
     "entry_size_bytes": 12,
     "dimensions": {
       "cc": 128,
-      "midi_channels": 16
+      "channels": 16
     },
-    "index_formula": "base + cc*0xC0 + midi_channel_zero_based*0x0C",
-    "entry_layout": [
-      "target_id:uint32_le",
-      "function_id:uint32_le",
-      "aux:uint32_le"
+    "function_id_range": "0..78",
+    "correction": "function 3 = CHANNEL_SELECT; function 5 = PAN"
+  },
+  "meter": {
+    "command": "31 04",
+    "full_frame": "F0 52 00 00 31 04 [31-byte payload] F7",
+    "wire_encoding": "4-bit nibble packed",
+    "wire_domain": "0..15",
+    "ui_renderer": "8-segment LED",
+    "db_thresholds": "not statically encoded; hardware measurement required"
+  },
+  "patch": {
+    "libraries": {
+      "0": "scene",
+      "1": "efx1"
+    },
+    "actions": {
+      "0": "SAVE",
+      "1": "SELECT",
+      "2": "RENAME",
+      "4": "DELETE"
+    },
+    "scene_payload_bytes": 310,
+    "scene_excludes": [
+      "CHANNEL_SELECT",
+      "SOLO"
+    ],
+    "opaque_fields": [
+      "Patch Data Dump A",
+      "Patch Data Dump BLOB",
+      "Patch Data Dump C",
+      "EFX auxiliary 14-bit field at 0x74F0/0x74F1"
     ]
   },
-  "unresolved_function_ids": [
-    0,
-    33,
-    38,
-    43,
-    44,
-    45,
-    55,
-    56,
-    57,
-    66,
-    67,
-    68,
-    69,
-    77
-  ],
-  "next_targets": [
-    "Identify function 45 (processed app-private state at B7/CC87) and function 67 (B9/CC89 event-only).",
-    "Resolve function 77 at CC94 channels 9/10.",
-    "Trace app-private/transmit-only IDs 55-57 and 68.",
-    "Extract meter packet framing and value scale."
-  ],
-  "master_cc54_analysis": {
-    "B8 54": {
-      "function_id": 33,
-      "status": "app_derived_unknown",
-      "notes": "Undocumented/app-only entry; likely master-related state/control but semantic name not yet proven."
+  "global_dump": {
+    "request": "F0 52 00 00 2B F7",
+    "response_length_prefix": "2D 03",
+    "payload_bytes": 429,
+    "state_range": "0x73B3..0x755F"
+  },
+  "project_enums": {
+    "RecorderStatus": {
+      "0": "stop",
+      "1": "play",
+      "2": "pause",
+      "3": "recStandBy",
+      "4": "recPause",
+      "5": "recPlay"
     },
-    "B9 54": {
-      "function_id": 34,
-      "name": "MASTER_MUTE",
-      "status": "manual_confirmed"
+    "MarkStatus": {
+      "0": "hide",
+      "1": "atMark",
+      "2": "notAtMark"
     },
-    "BA 54": {
-      "function_id": 35,
-      "name": "MASTER_FADER",
-      "status": "manual_confirmed"
-    },
-    "BB 54": {
-      "function_id": 36,
-      "name": "MASTER_COMP",
-      "status": "manual_confirmed"
+    "PlayMode": {
+      "0": "off",
+      "1": "playOne",
+      "2": "playAll",
+      "3": "repeatOne",
+      "4": "repeatAll"
     }
   },
-  "project_state_reverse": {
-    "snapshot_base_offset_hex": "0x7539",
-    "snapshot_size_bytes": 39,
-    "swift_fields": [
-      {
-        "offset": 0,
-        "field": "recorderStatus",
-        "function_id": 46
-      },
-      {
-        "offset": 1,
-        "field": "overdub",
-        "function_id": 52
-      },
-      {
-        "offset": 2,
-        "field": "markStatus",
-        "function_id": 53
-      },
-      {
-        "offset": 3,
-        "field": "markNumber",
-        "function_id": 54
-      },
-      {
-        "offset": 17,
-        "field": "samplingRate",
-        "function_id": 58
-      },
-      {
-        "offset": 18,
-        "field": "bitDepth",
-        "function_id": 59
-      },
-      {
-        "offset": 19,
-        "field": "sdCardIcon",
-        "function_id": 60
-      },
-      {
-        "offset": 20,
-        "field": "metronomeIcon",
-        "function_id": 61
-      },
-      {
-        "offset": 21,
-        "field": "playmode",
-        "function_id": 62
-      },
-      {
-        "offset": 22,
-        "field": "projectProtect",
-        "function_id": 63
-      },
-      {
-        "offset": 37,
-        "field": "previousExists",
-        "function_id": 64
-      },
-      {
-        "offset": 38,
-        "field": "nextExists",
-        "function_id": 65
-      }
-    ],
-    "evidence": "Static ARM64 analysis of the receive dispatcher and the Swift bridge that copies the 39-byte project-state snapshot."
+  "hardware_confirmed": {
+    "record_active": "B8 57 05",
+    "record_inactive": "B8 57 00"
   },
-  "recv_dispatch": {
-    "entry_address": "0x10001893C",
-    "jump_table_address": "0x100074D24",
-    "function_id_range": "1..78",
-    "default_unhandled_address": "0x100018CD8",
-    "unhandled_function_ids": [
-      33,
-      38,
-      41,
-      43,
-      44,
-      47,
-      48,
-      49,
-      50,
-      51,
-      55,
-      56,
-      57,
-      66,
-      68,
-      69
-    ],
-    "notes": "These IDs have recvCC table entries but branch to the app's explicit 'received unhandled CC' path in this build. They are therefore not normal incoming state handlers here."
-  },
-  "meters_reverse": {
-    "handler_address": "0x100038368",
-    "source": "static ARM64 analysis of decrypted L12next Control",
-    "meter_params_layout": [
-      {
-        "offset": "0x00",
-        "name": "track",
-        "size": 12
-      },
-      {
-        "offset": "0x10",
-        "name": "track_efx",
-        "size": 2
-      },
-      {
-        "offset": "0x20",
-        "name": "signal",
-        "size": 12
-      },
-      {
-        "offset": "0x30",
-        "name": "bridge",
-        "size": 12
-      },
-      {
-        "offset": "0x40",
-        "name": "bridge_efx",
-        "size": 2
-      },
-      {
-        "offset": "0x50",
-        "name": "master",
-        "size": 2
-      },
-      {
-        "offset": "0x60",
-        "name": "aux_group_6",
-        "size": "dynamic/forwarded"
-      },
-      {
-        "offset": "0x70",
-        "name": "aux_group_7",
-        "size": "dynamic/forwarded"
-      }
-    ],
-    "track_channel_mapping": {
-      "raw_0_to_7": "CH1..CH8 mono",
-      "raw_8_9": "CH9/10 stereo L/R",
-      "raw_10_11": "CH11/12 stereo L/R",
-      "derivation": "handler maps 12 raw bytes into 10 UI strips; first 8 use subindex 0, last four are paired as two stereo strips"
-    },
-    "bridge_mapping": "same 12-byte mono/stereo packing as track",
-    "track_efx_mapping": "2-byte stereo EFX return",
-    "bridge_efx_mapping": "2-byte stereo EFX bridge",
-    "master_mapping": "2-byte stereo master L/R",
-    "signal_mapping": "12-byte signal/pre-meter group; same 12-channel physical packing",
-    "notes": [
-      "Raw meter values are copied byte-for-byte into the app's meter state arrays.",
-      "The meter handler validates exact sizes and prints dedicated warnings for track, track EFX, bridge, bridge EFX, master and signal groups.",
-      "The app later routes some meter payloads through an internal data/p2p path at 0x100036800.",
-      "Raw byte to dB/LED scale is not yet proven statically."
-    ],
-    "level_encoding": {
-      "raw_range": "0..8 (discrete LED count/index)",
-      "normalization": "normalized = raw / 8.0",
-      "renderer": "LEDAudioMeter",
-      "renderer_address": "0x10005A738",
-      "caller_evidence": "meter UI caller converts integer raw with SCVTF then multiplies by 0.125 before storing the level",
-      "renderer_evidence": "LEDAudioMeter multiplies the stored level by 8, converts to integer, and computes 8 - raw to crop the LED image",
-      "interpretation": "The native meter is an 8-step LED meter, not a 0..255 continuous dB value. raw=0 is empty; raw=8 is full scale in the UI.",
-      "db_thresholds": "not encoded in the app renderer; likely quantized by mixer/firmware before transmission"
-    },
-    "wire_encoding": {
-      "decoder_address": "0x1000190AC",
-      "encoding": "nibble-packed",
-      "operations": [
-        "value & 0x0F",
-        "value >> 4"
-      ],
-      "confidence": "app_derived_strong",
-      "notes": "MeterParams byte arrays are post-decoding. On-wire/SysEx payload packs meter magnitudes in 4-bit nibbles; exact SysEx command/header is still unresolved."
-    }
-  }
+  "remaining_validation": [
+    "measure meter nibble thresholds in dBFS",
+    "capture one complete native 31 04 frame",
+    "capture one complete 2B global dump"
+  ]
 }
