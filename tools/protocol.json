@@ -1,31 +1,86 @@
 {
   "metadata": {
     "device": "ZOOM LiveTrak L12next",
+    "static_reverse_status": "complete_to_app_visible_semantics",
     "source_app": "L12next Control_decrypted.ipa",
-    "bundle_id": "jp.co.zoom.l12nextcontrol",
-    "binary_encryption": "cryptid 0",
-    "evidence_levels": {
-      "hardware_confirmed": "Observed/replayed on the physical mixer",
-      "manual_confirmed": "Present in official ZOOM MIDI documentation",
-      "app_derived": "Recovered from decrypted official app",
-      "app_derived_strong": "Recovered by direct parser/serializer/control-flow analysis",
-      "probable": "Strongly suggested but not yet hardware-validated",
-      "unresolved": "Structure known, exact semantic label still open"
-    }
+    "binary_encryption": "cryptid 0"
   },
-  "recv_cc_table": {
-    "file_offset_hex": "0x7AEA4",
-    "dimensions": {
-      "cc": 128,
-      "midi_channels": 16
+  "midi_cc": {
+    "recv_table": {
+      "file_offset_hex": "0x7AEA4",
+      "cc_count": 128,
+      "channels": 16,
+      "entry_size": 12,
+      "index_formula": "base + cc*0xC0 + channel*0x0C"
     },
-    "entry_size_bytes": 12,
-    "index_formula": "base + CC*0xC0 + midi_channel_zero_based*0x0C",
-    "entry_layout": [
-      "target_id:uint32_le",
-      "function_id:uint32_le",
-      "aux:uint32_le"
-    ]
+    "function_ids": {
+      "1": "COMP",
+      "2": "USB_INPUT_SELECT",
+      "3": "CHANNEL_SELECT",
+      "4": "PHASE",
+      "5": "PAN",
+      "6": "EQ_HIGH",
+      "7": "EQ_MID_FREQ",
+      "8": "EQ_MID_GAIN",
+      "9": "EQ_MID_Q",
+      "10": "EQ_LOW",
+      "11": "LOCUT",
+      "12": "MUTE",
+      "13": "SOLO",
+      "14": "SEND_EFX",
+      "15": "FADER",
+      "16": "SEND_A",
+      "17": "SEND_B",
+      "18": "SEND_C",
+      "19": "SEND_D",
+      "20": "SEND_E",
+      "21": "EFX_TYPE",
+      "22": "EFX_TONE_TIME_14BIT",
+      "23": "EFX_DECAY_FEEDBACK_14BIT",
+      "24": "EFX_MUTE",
+      "25": "EFX_SOLO",
+      "26": "EFX_RETURN_FADER",
+      "27": "EFX_RETURN_A",
+      "28": "EFX_RETURN_B",
+      "29": "EFX_RETURN_C",
+      "30": "EFX_RETURN_D",
+      "31": "EFX_RETURN_E",
+      "32": "MONITOR_VOLUME_A_E",
+      "34": "MASTER_MUTE",
+      "35": "MASTER_FADER",
+      "36": "MASTER_COMP",
+      "37": "MASTER_EQ_GLOBAL_ON",
+      "39": "SCENE_SAVE",
+      "40": "SCENE_RECALL",
+      "41": "SCENE_SELECT",
+      "42": "SCENE_RESET",
+      "46": "RECORD_STATE",
+      "47": "RECORD_BUTTON",
+      "48": "PLAY",
+      "49": "STOP",
+      "50": "REW",
+      "51": "FAST_FORWARD",
+      "52": "OVERDUB",
+      "53": "MARK_STATUS",
+      "54": "MARK_NUMBER",
+      "58": "SAMPLING_RATE",
+      "59": "BIT_DEPTH",
+      "60": "SD_CARD_ICON",
+      "61": "METRONOME_ICON",
+      "62": "PLAY_MODE",
+      "63": "PROJECT_PROTECT",
+      "64": "PREVIOUS_PROJECT_EXISTS",
+      "65": "NEXT_PROJECT_EXISTS",
+      "70": "SCENE_DELETE",
+      "71": "GAIN",
+      "72": "MASTER_EQ_ON_FIELD",
+      "73": "MASTER_EQ_TYPE_FIELD",
+      "74": "MASTER_EQ_FREQ_FIELD",
+      "75": "MASTER_EQ_Q_FIELD",
+      "76": "MASTER_EQ_GAIN_FIELD",
+      "77": "EFX_AUX_14BIT_OPAQUE",
+      "78": "GAIN_BOOST"
+    }
   },
   "hardware_confirmed": {
     "transport": {
@@ -57,114 +112,97 @@
         "BC 59 03"
       ]
     },
-    "fader_measurement": {
-      "method": "tone on CH11/12, reading on master",
-      "points": [
-        {
-          "midi": 87,
-          "db": 0
-        },
-        {
-          "midi": 81,
-          "db": -1.7
-        },
-        {
-          "midi": 75,
-          "db": -3.3
-        },
-        {
-          "midi": 69,
-          "db": -5
-        },
-        {
-          "midi": 63,
-          "db": -6.7
-        },
-        {
-          "midi": 58,
-          "db": -8.1
-        },
-        {
-          "midi": 53,
-          "db": -9.4
-        },
-        {
-          "midi": 49,
-          "db": -11.1
-        },
-        {
-          "midi": 45,
-          "db": -13.2
-        },
-        {
-          "midi": 40,
-          "db": -15.8
-        },
-        {
-          "midi": 35,
-          "db": -18.4
-        },
-        {
-          "midi": 29,
-          "db": -23.3
-        },
-        {
-          "midi": 23,
-          "db": -30
-        },
-        {
-          "midi": 17,
-          "db": -36.7
-        },
-        {
-          "midi": 11,
-          "db": -49.2
-        }
+    "fader_db": [
+      [
+        87,
+        0
       ],
-      "warning": "Fader law only; not the meter scale."
-    }
+      [
+        81,
+        -1.7
+      ],
+      [
+        75,
+        -3.3
+      ],
+      [
+        69,
+        -5
+      ],
+      [
+        63,
+        -6.7
+      ],
+      [
+        58,
+        -8.1
+      ],
+      [
+        53,
+        -9.4
+      ],
+      [
+        49,
+        -11.1
+      ],
+      [
+        45,
+        -13.2
+      ],
+      [
+        40,
+        -15.8
+      ],
+      [
+        35,
+        -18.4
+      ],
+      [
+        29,
+        -23.3
+      ],
+      [
+        23,
+        -30
+      ],
+      [
+        17,
+        -36.7
+      ],
+      [
+        11,
+        -49.2
+      ]
+    ]
   },
   "sysex": {
-    "common_frame": "F0 52 00 00 ... F7",
-    "command_families": {
-      "31": "Realtime/event family",
-      "32": "Patch Action",
-      "50": "Enter PC Mode",
-      "51": "Terminate PC Mode",
-      "01": "Parameters",
-      "02": "Parameters In",
-      "03": "Parameters14",
-      "06": "Identity",
-      "07": "Patch Info",
-      "08": "Patch Data Dump",
-      "2B": "Global Setting Dump",
-      "4C": "Fader Mode Change"
+    "frame": "F0 52 00 00 ... F7",
+    "identity": {
+      "request": "F0 52 00 00 06 F7",
+      "response": "F0 52 00 00 06 [4-byte firmware version] F7"
+    },
+    "pc_mode": {
+      "enter": "F0 52 00 00 50 F7",
+      "terminate": "F0 52 00 00 51 F7"
+    },
+    "fader_mode": {
+      "frame": "F0 52 00 00 4C MODE F7",
+      "modes": {
+        "0": "master",
+        "1": "monitorA",
+        "2": "monitorB",
+        "3": "monitorC",
+        "4": "monitorD",
+        "5": "monitorE",
+        "6": "monitorF"
+      }
     },
     "parameters": {
-      "01": {
-        "format": "F0 52 00 00 01 Bn CC VV F7",
-        "meaning": "one arbitrary 3-byte MIDI CC record",
-        "evidence": "app_derived_strong"
-      },
-      "02": {
-        "format": "F0 52 00 00 02 Bn CC VV F7",
-        "meaning": "incoming CC record reinjected into recvCC",
-        "evidence": "app_derived_strong"
-      },
+      "01": "F0 52 00 00 01 Bn CC VV F7",
+      "02": "F0 52 00 00 02 Bn CC VV F7",
       "03": {
-        "format": "F0 52 00 00 03 Bn CC MSB Bm CC LSB F7",
-        "value_formula": "(MSB << 7) | LSB",
-        "evidence": "app_derived_strong",
-        "examples": {
-          "efx_tone_time": [
-            "B4 4E MSB",
-            "B5 4E LSB"
-          ],
-          "efx_decay_feedback": [
-            "BC 4E MSB",
-            "BD 4E LSB"
-          ]
-        }
+        "frame": "F0 52 00 00 03 [Bn CC MSB] [Bm CC LSB] F7",
+        "formula": "(MSB << 7) | LSB"
       }
     },
     "events_31": {
@@ -180,38 +218,11 @@
       "31 5A": "Display Locate Time"
     },
     "meter": {
-      "exact_frame": "F0 52 00 00 31 04 [31-byte payload] F7",
-      "total_frame_bytes": 38,
-      "payload_length": 31,
-      "raw_meter_range": "0..15",
-      "wire_encoding": "nibble-packed",
-      "payload_fields": [
-        {
-          "index": 0,
-          "name": "fader_meter_mode"
-        },
-        {
-          "range": "1..12",
-          "name": "packed_signal_and_companion_bank"
-        },
-        {
-          "range": "13..14",
-          "name": "efx_aux_pair"
-        },
-        {
-          "range": "15..26",
-          "name": "principal_12_channel_bank"
-        },
-        {
-          "range": "27..28",
-          "name": "efx_lr"
-        },
-        {
-          "range": "29..30",
-          "name": "master_lr"
-        }
-      ],
-      "channel_order": [
+      "frame": "F0 52 00 00 31 04 [31-byte payload] F7",
+      "total_bytes": 38,
+      "payload_bytes": 31,
+      "wire_domain": "0..15 nibble",
+      "principal_order": [
         "CH1",
         "CH2",
         "CH3",
@@ -223,69 +234,78 @@
         "CH9/10 L",
         "CH9/10 R",
         "CH11/12 L",
-        "CH11/12 R"
+        "CH11/12 R",
+        "EFX L",
+        "EFX R",
+        "MASTER L",
+        "MASTER R"
       ],
-      "nibble_ops": [
-        "value & 0x0F",
-        "value >> 4"
-      ],
-      "db_scale_status": "unresolved"
+      "db_thresholds": "hardware_measurement_required"
     },
-    "patch_info_07": {
-      "frame": "F0 52 00 00 07 LL ... F7",
-      "libraries": [
-        0,
-        1
-      ],
-      "record_layout": [
-        "uint14_or_equivalent patch_index",
-        "uint8 flag",
-        "char[17] patch_name"
-      ],
-      "evidence": "app_derived_strong"
+    "patch_info": {
+      "scene_request": "F0 52 00 00 07 00 F7",
+      "efx1_request": "F0 52 00 00 07 01 F7",
+      "libraries": {
+        "0": "scene",
+        "1": "efx1"
+      },
+      "response_body": "COUNT:uint14 + COUNT * {INDEX:uint14, FLAG:uint8, NAME:17 bytes}"
     },
-    "patch_action_32": {
-      "frame": "F0 52 00 00 32 LL ACTION INDEX_LOW7 INDEX_HIGH7 [optional name] F7",
-      "index_formula": "low7 | (high7 << 7)",
+    "patch_action": {
+      "frame": "F0 52 00 00 32 LIBRARY ACTION INDEX_LOW7 INDEX_HIGH7 [optional name] F7",
       "actions": {
         "0": "SAVE",
-        "1": "unresolved internal action",
+        "1": "SELECT",
         "2": "RENAME",
         "4": "DELETE"
       },
-      "name_length_encoding": "11 00 = 17",
-      "name_area_bytes": 17,
-      "evidence": "app_derived_strong"
+      "name_length_for_save_rename": "11 00",
+      "name_bytes": 17
     },
-    "patch_data_dump_08": {
-      "frame": "F0 52 00 00 08 LL ... F7",
-      "common_envelope": {
-        "A": "uint14 unresolved metadata",
-        "LEN": "uint14 blob length",
-        "blob": "LEN bytes unresolved metadata",
-        "C": "uint14 unresolved metadata"
-      },
-      "library_0": "full mixer scene/state patch family",
-      "library_1": "compact EFX patch family: EFX type + two 14-bit EFX parameters"
+    "patch_data_dump": {
+      "frame_family": "F0 52 00 00 08 LIBRARY ... F7",
+      "envelope": [
+        "A:uint14 opaque",
+        "LEN:uint14",
+        "BLOB:LEN bytes opaque",
+        "C:uint14 opaque",
+        "DATA"
+      ],
+      "scene_payload_bytes": 310,
+      "scene_excludes": [
+        "CHANNEL_SELECT",
+        "SOLO"
+      ],
+      "efx1_payload": "EFX_TYPE:uint8 + PARAM1:uint14 + PARAM2:uint14"
     },
-    "global_setting_dump_2B": {
-      "data_bytes": 429,
-      "state_range": "0x73B3..0x755F",
-      "listener": "2B 0A",
-      "listener_behavior": "preserves Monitor A-E while applying the snapshot",
-      "evidence": "app_derived_strong"
+    "global_dump": {
+      "request": "F0 52 00 00 2B F7",
+      "response": "F0 52 00 00 2B 2D 03 [429 bytes] F7",
+      "length": 429,
+      "length_uint14_bytes": [
+        "0x2D",
+        "0x03"
+      ],
+      "listener_command": "2B 0A",
+      "listener_preserves": [
+        "Monitor A",
+        "Monitor B",
+        "Monitor C",
+        "Monitor D",
+        "Monitor E"
+      ]
     }
   },
   "state_layout": {
-    "0x73B3-0x73B4": "USB input select, stereo strips",
-    "0x73B5-0x740E": "channel names, 10 x 9 bytes",
-    "0x740F-0x7418": "channel colors, 10 bytes",
+    "0x73B3-0x73B4": "USB input select",
+    "0x73B5-0x740E": "channel names 10x9",
+    "0x740F-0x7418": "channel colors",
     "0x7419-0x7422": "gain boost",
     "0x7423-0x742C": "gain",
     "0x742D-0x7436": "compressor",
-    "0x7437-0x7440": "channel select",
+    "0x7437-0x7440": "channel select runtime-only",
     "0x7441-0x744A": "mute",
-    "0x744B-0x7454": "solo",
+    "0x744B-0x7454": "solo runtime-only",
     "0x7455-0x745E": "phase",
     "0x745F-0x7468": "pan",
     "0x7469-0x7472": "EQ high",
@@ -296,96 +316,78 @@
     "0x749B-0x74A4": "low cut",
     "0x74A5-0x74AE": "send EFX",
     "0x74AF-0x74B8": "fader",
-    "0x74B9-0x74C2": "send A",
-    "0x74C3-0x74CC": "send B",
-    "0x74CD-0x74D6": "send C",
-    "0x74D7-0x74E0": "send D",
-    "0x74E1-0x74EA": "send E",
+    "0x74B9-0x74EA": "send A-E",
     "0x74EB": "EFX type",
-    "0x74EC-0x74ED": "EFX 14-bit parameter 1",
-    "0x74EE-0x74EF": "EFX 14-bit parameter 2",
-    "0x74F0-0x74F1": "EFX 14-bit parameter 3 / app-private EFX field",
+    "0x74EC-0x74ED": "EFX param1 14-bit",
+    "0x74EE-0x74EF": "EFX param2 14-bit",
+    "0x74F0-0x74F1": "EFX auxiliary 14-bit field, semantic opaque",
     "0x74F2": "EFX mute",
     "0x74F3": "EFX solo",
-    "0x74F4": "EFX return fader",
-    "0x74F5": "EFX return A",
-    "0x74F6": "EFX return B",
-    "0x74F7": "EFX return C",
-    "0x74F8": "EFX return D",
-    "0x74F9": "EFX return E",
+    "0x74F4-0x74F9": "EFX return fader + A-E",
     "0x74FA": "master mute",
     "0x74FB": "master comp",
     "0x74FC": "master fader",
-    "0x74FD": "Monitor A",
-    "0x74FE": "Monitor B",
-    "0x74FF": "Monitor C",
-    "0x7500": "Monitor D",
-    "0x7501": "Monitor E",
+    "0x74FD-0x7501": "Monitor A-E",
     "0x7502": "MASTER EQ GLOBAL ON",
-    "0x7503-0x752A": "MASTER EQ: 8 targets x 5 fields (ON,TYPE,FREQ,Q,GAIN)",
+    "0x7503-0x752A": "MASTER EQ 8x5",
     "0x752B-0x7534": "SceneState[10]",
-    "0x7535": "SCENE RESET state/control",
-    "0x7536": "SCENE SAVE state/control",
-    "0x7537": "SCENE RECALL state/control",
-    "0x7538": "SCENE DELETE state/control",
-    "0x7539-0x755F": "Project/Recorder State, 39 bytes"
+    "0x7535": "Scene Reset",
+    "0x7536": "Scene Save",
+    "0x7537": "Scene Recall",
+    "0x7538": "Scene Delete",
+    "0x7539-0x755F": "Project/Recorder state 39 bytes"
   },
-  "scene_state_enum": {
-    "ui_enum": "SceneDetailTableViewCellState",
-    "values": {
+  "enums": {
+    "FaderMode": {
+      "0": "master",
+      "1": "monitorA",
+      "2": "monitorB",
+      "3": "monitorC",
+      "4": "monitorD",
+      "5": "monitorE",
+      "6": "monitorF"
+    },
+    "LibraryType": {
+      "0": "scene",
+      "1": "efx1"
+    },
+    "LibraryActionType": {
+      "0": "save",
+      "1": "select",
+      "2": "rename",
+      "3": "delete (Swift enum discriminator; wire delete action is 4)"
+    },
+    "SceneDetailTableViewCellState": {
       "0": "off",
       "1": "on",
       "2": "blink",
-      "3": "special/empty-like (probable, outside 3-case UI enum)"
+      "3": "special/empty-like protocol state outside UI enum"
     },
-    "selected_is_separate": true
+    "RecorderStatus": {
+      "0": "stop",
+      "1": "play",
+      "2": "pause",
+      "3": "recStandBy",
+      "4": "recPause",
+      "5": "recPlay"
+    },
+    "MarkStatus": {
+      "0": "hide",
+      "1": "atMark",
+      "2": "notAtMark"
+    },
+    "PlayMode": {
+      "0": "off",
+      "1": "playOne",
+      "2": "playAll",
+      "3": "repeatOne",
+      "4": "repeatAll"
+    }
   },
-  "project_state": {
-    "base": "0x7539",
-    "size": 39,
-    "fields": {
-      "0": "recorderStatus",
-      "1": "overdub",
-      "2": "markStatus",
-      "3": "markNumber",
-      "17": "samplingRate",
-      "18": "bitDepth",
-      "19": "sdCardIcon",
-      "20": "metronomeIcon",
-      "21": "playmode",
-      "22": "projectProtect",
-      "37": "previousExists",
-      "38": "nextExists"
-    },
-    "enum_names": {
-      "recorderStatus": [
-        "stop",
-        "play",
-        "pause",
-        "recStandBy",
-        "recPause",
-        "recPlay"
-      ],
-      "markStatus": [
-        "atMark",
-        "notAtMark"
-      ],
-      "playmode": [
-        "playOne",
-        "playAll",
-        "repeatOne",
-        "repeatAll"
-      ]
-    },
-    "numeric_enum_values_status": "not fully proven"
-  },
-  "unresolved": [
-    "Exact meter nibble 0..15 -> dBFS thresholds",
-    "Exact semantic name of EFX 14-bit field at 0x74F0-0x74F1",
-    "Patch Data Dump envelope fields A/blob/C",
-    "Patch Action internal action 1",
-    "Exact numeric values for all recorder/project enums",
-    "Exact payload semantics for Identity (06) and Fader Mode Change (4C)",
-    "Hardware capture validation of complete 31 04 meter and 2B global dump frames"
+  "remaining_hardware_or_semantic_only": [
+    "meter nibble 0..15 to dBFS thresholds",
+    "human-readable semantic label of 0x74F0/0x74F1",
+    "human-readable semantic labels of Patch Data Dump A/BLOB/C",
+    "live capture validation of full 31 04 and 2B frames"
   ]
 }
