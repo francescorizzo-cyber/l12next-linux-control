@@ -338,6 +338,16 @@
       "The meter handler validates exact sizes and prints dedicated warnings for track, track EFX, bridge, bridge EFX, master and signal groups.",
       "The app later routes some meter payloads through an internal data/p2p path at 0x100036800.",
       "Raw byte to dB/LED scale is not yet proven statically."
-    ]
+    ],
+    "level_encoding": {
+      "raw_range": "0..8 (discrete LED count/index)",
+      "normalization": "normalized = raw / 8.0",
+      "renderer": "LEDAudioMeter",
+      "renderer_address": "0x10005A738",
+      "caller_evidence": "meter UI caller converts integer raw with SCVTF then multiplies by 0.125 before storing the level",
+      "renderer_evidence": "LEDAudioMeter multiplies the stored level by 8, converts to integer, and computes 8 - raw to crop the LED image",
+      "interpretation": "The native meter is an 8-step LED meter, not a 0..255 continuous dB value. raw=0 is empty; raw=8 is full scale in the UI.",
+      "db_thresholds": "not encoded in the app renderer; likely quantized by mixer/firmware before transmission"
+    }
   }
 }
